@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="referrer" content="no-referrer">
-  <title>CarlosV8 - Music Player</title>
+  <title>CarlosV8 - Music Player (Canciones Completas)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #121212; color: #ffffff; min-height: 100vh; padding-bottom: 100px; display: flex; flex-direction: column; }
+    body { background-color: #121212; color: #ffffff; min-height: 100vh; padding-bottom: 110px; display: flex; flex-direction: column; }
 
     /* Layout Principal */
-    .app-container { display: flex; flex: 1; min-height: calc(100vh - 90px); }
+    .app-container { display: flex; flex: 1; min-height: calc(100vh - 100px); }
 
     /* Menú Lateral */
     .sidebar {
@@ -71,19 +71,24 @@
     .card-title { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
     .card-sub { font-size: 12px; color: #a7a7a7; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* Reproductor Fijo */
+    /* Reproductor Fijo con Reproductor Completo de YouTube */
     .player-bar {
-      position: fixed; bottom: 0; left: 0; width: 100%; height: 90px;
+      position: fixed; bottom: 0; left: 0; width: 100%; height: 100px;
       background-color: #000000; border-top: 1px solid #282828;
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 24px; z-index: 999;
     }
-    .track-info { display: flex; align-items: center; gap: 14px; width: 30%; min-width: 180px; }
-    .track-info img { width: 56px; height: 56px; border-radius: 4px; object-fit: cover; background: #282828; }
+    .track-info { display: flex; align-items: center; gap: 14px; width: 30%; min-width: 200px; }
+    .track-info img { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; background: #282828; }
     .track-details h4 { font-size: 14px; font-weight: 600; color: #fff; }
     .track-details p { font-size: 12px; color: #a7a7a7; margin-top: 2px; }
 
-    audio { width: 45%; max-width: 600px; height: 40px; outline: none; }
+    .yt-player-container {
+      width: 50%; max-width: 500px; height: 80px; border-radius: 8px; overflow: hidden; background: #000;
+      display: flex; align-items: center; justify-content: center;
+    }
+    iframe#ytPlayer { width: 100%; height: 100%; border: none; }
+
     .status-msg { color: #a7a7a7; font-size: 14px; padding: 20px 0; }
   </style>
 </head>
@@ -106,7 +111,7 @@
       
       <!-- Seccion 1: INICIO -->
       <section id="sec-inicio">
-        <h2 class="section-title">🔥 Canciones más Top</h2>
+        <h2 class="section-title">🔥 Canciones más Top (Completas)</h2>
         <div class="grid" id="top-songs-grid"></div>
 
         <h2 class="section-title">⭐ Artistas más Top</h2>
@@ -116,12 +121,12 @@
       <!-- Seccion 2: BUSCAR -->
       <section id="sec-buscar" style="display: none;">
         <div class="search-bar">
-          <input type="text" id="searchInput" class="search-input" placeholder="¿Qué quieres escuchar hoy?" onkeypress="if(event.key==='Enter') ejecutarBusqueda()">
+          <input type="text" id="searchInput" class="search-input" placeholder="¿Qué canción completa buscas?" onkeypress="if(event.key==='Enter') ejecutarBusqueda()">
           <button class="search-btn" onclick="ejecutarBusqueda()">Buscar</button>
         </div>
         <h2 class="section-title" id="search-title">Buscar música</h2>
         <div class="grid" id="search-grid">
-          <p class="status-msg">Escribe una canción o artista en el buscador para empezar.</p>
+          <p class="status-msg">Escribe el nombre de cualquier canción para escucharla entera.</p>
         </div>
       </section>
 
@@ -134,7 +139,7 @@
     </main>
   </div>
 
-  <!-- Barra del Reproductor -->
+  <!-- Barra del Reproductor con YouTube Embed para Canciones Enteras -->
   <footer class="player-bar">
     <div class="track-info">
       <img id="playerCover" alt="">
@@ -143,20 +148,18 @@
         <p id="nowArtist">CarlosV8 Player</p>
       </div>
     </div>
-    <audio id="audioPlayer" controls></audio>
+    
+    <div class="yt-player-container">
+      <iframe id="ytPlayer" src="" allow="autoplay; encrypted-media"></iframe>
+    </div>
   </footer>
 
   <script>
-    // Generador de portadas de respaldo vectoriales en SVG (Base64)
+    // Generador de portadas de respaldo en SVG
     function generarCoverSVG(titulo, artista, esArtista = false) {
       const paletas = [
-        ['#1DB954', '#121212'],
-        ['#833ab4', '#fd1d1d'],
-        ['#00c6ff', '#0072ff'],
-        ['#f857a6', '#ff5858'],
-        ['#7F00FF', '#E100FF'],
-        ['#FF416C', '#FF4B2B'],
-        ['#11998e', '#38ef7d']
+        ['#1DB954', '#121212'], ['#833ab4', '#fd1d1d'], ['#00c6ff', '#0072ff'],
+        ['#f857a6', '#ff5858'], ['#7F00FF', '#E100FF'], ['#FF416C', '#FF4B2B']
       ];
       let hash = 0;
       const str = (titulo || '') + (artista || '');
@@ -182,7 +185,6 @@
       return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
     }
 
-    // Cargador seguro de imágenes para evitar fotos caídas
     function cargarImagenSegura(imgElement, srcUrl, fallbackSvg) {
       if (!srcUrl) {
         imgElement.src = fallbackSvg;
@@ -195,68 +197,20 @@
       imgElement.src = srcUrl;
     }
 
-    // Lista de Canciones Top
+    // Lista de Canciones Top con IDs de YouTube para reproducir COMPLETAS
     const topCanciones = [
-      {
-        id: 'c1', title: 'Columbia', artist: 'Quevedo',
-        cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/9c/6b/a8/9c6ba8db-4e92-3d23-7a91-4d048fa5d24b/8445162402179.jpg/300x300bb.jpg',
-        audio: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo116/v4/37/74/d2/3774d221-3958-8b98-333e-11005a76793f/mzaf_13593368297771746205.plus.aac.p.m4a'
-      },
-      {
-        id: 'c2', title: 'LALA', artist: 'Myke Towers',
-        cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/44/21/87/442187f8-7b8c-1e82-2a78-2bf0f9d94f27/197188350711.jpg/300x300bb.jpg',
-        audio: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo126/v4/6d/82/3b/6d823b12-98e3-057d-411a-1d54f5d13a9d/mzaf_16480376175949666012.plus.aac.p.m4a'
-      },
-      {
-        id: 'c3', title: 'Classy 101', artist: 'Feid & Young Miko',
-        cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/80/4f/9b/804f9b8c-5722-1d5f-1e87-f8e1bc98918a/23UMGIM33400.rgb.jpg/300x300bb.jpg',
-        audio: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo116/v4/bf/2d/e9/bf2de90f-3151-54b1-4122-38d6df022a4b/mzaf_10258169123019803276.plus.aac.p.m4a'
-      },
-      {
-        id: 'c4', title: 'El Merengue', artist: 'Marshmello & Manuel Turizo',
-        cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/10/9f/6a/109f6a1e-a4be-b472-a72a-e8d970e30349/196871038312.jpg/300x300bb.jpg',
-        audio: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo126/v4/f4/11/17/f411171a-28e4-86a3-2d21-f05cb023cb30/mzaf_11333790538054002622.plus.aac.p.m4a'
-      },
-      {
-        id: 'c5', title: 'BABY HELLO', artist: 'Rauw Alejandro & Bizarrap',
-        cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/b8/12/57/b812574e-5c40-3023-95cf-cb937e4d8050/196871230181.jpg/300x300bb.jpg',
-        audio: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo116/v4/b8/12/57/b812574e-5c40-3023-95cf-cb937e4d8050/mzaf_16942129532912423374.plus.aac.p.m4a'
-      },
-      {
-        id: 'c6', title: 'Los del Espacio', artist: 'LIT killah, Duki, Emilia',
-        cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/19/21/ed/1921edbf-803d-82d2-28e9-df75fb8fb5c6/5054197682283.jpg/300x300bb.jpg',
-        audio: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo116/v4/19/21/ed/1921edbf-803d-82d2-28e9-df75fb8fb5c6/mzaf_10332847627407519961.plus.aac.p.m4a'
-      },
-      {
-        id: 'c7', title: 'Polaris Remix', artist: 'Saiko, Quevedo, Feid',
-        cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/80/7e/40/807e408d-73a7-548d-6925-502011bfa30f/8445162810059.jpg/300x300bb.jpg',
-        audio: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo116/v4/80/7e/40/807e408d-73a7-548d-6925-502011bfa30f/mzaf_843194857213898166.plus.aac.p.m4a'
-      },
-      {
-        id: 'c8', title: 'CORAZÓN VACÍO', artist: 'Maria Becerra',
-        cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/2b/23/ef/2b23ef24-69c7-5058-29be-4e78f69f2e30/5054197693992.jpg/300x300bb.jpg',
-        audio: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo126/v4/2b/23/ef/2b23ef24-69c7-5058-29be-4e78f69f2e30/mzaf_14092419266318991410.plus.aac.p.m4a'
-      },
-      {
-        id: 'c9', title: 'MONACO', artist: 'Bad Bunny',
-        cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/21/f0/3a/21f03a6c-59df-961d-7206-8d6ef7174db1/197188898145.jpg/300x300bb.jpg',
-        audio: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo126/v4/21/f0/3a/21f03a6c-59df-961d-7206-8d6ef7174db1/mzaf_13506140026116812845.plus.aac.p.m4a'
-      },
-      {
-        id: 'c10', title: 'LUNA', artist: 'Feid & ATL Jacob',
-        cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/91/9e/c3/919ec31a-f739-9686-22a8-a3f2db724e8e/23UMGIM95156.rgb.jpg/300x300bb.jpg',
-        audio: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo126/v4/bf/2d/e9/bf2de90f-3151-54b1-4122-38d6df022a4b/mzaf_10258169123019803276.plus.aac.p.m4a'
-      },
-      {
-        id: 'c11', title: 'Reina', artist: 'Mora & Saiko',
-        cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/e5/22/02/e52202bc-b80c-0331-508b-ee5fa65cb65a/197188737383.jpg/300x300bb.jpg',
-        audio: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo126/v4/e5/22/02/e52202bc-b80c-0331-508b-ee5fa65cb65a/mzaf_8496464811802958448.plus.aac.p.m4a'
-      },
-      {
-        id: 'c12', title: 'Madrid City', artist: 'Ana Mena',
-        cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/e2/ee/2e/e2ee2e2d-3047-9f6b-0b16-560416fb98d8/196871460595.jpg/300x300bb.jpg',
-        audio: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo126/v4/e2/ee/2e/e2ee2e2d-3047-9f6b-0b16-560416fb98d8/mzaf_7468164802918400032.plus.aac.p.m4a'
-      }
+      { id: 'c1', title: 'Columbia', artist: 'Quevedo', ytId: 'm49a2gA2LNo', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/9c/6b/a8/9c6ba8db-4e92-3d23-7a91-4d048fa5d24b/8445162402179.jpg/300x300bb.jpg' },
+      { id: 'c2', title: 'LALA', artist: 'Myke Towers', ytId: 'g202Bv-N4qA', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/44/21/87/442187f8-7b8c-1e82-2a78-2bf0f9d94f27/197188350711.jpg/300x300bb.jpg' },
+      { id: 'c3', title: 'Classy 101', artist: 'Feid & Young Miko', ytId: 'sJ92c_Z6x3s', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/80/4f/9b/804f9b8c-5722-1d5f-1e87-f8e1bc98918a/23UMGIM33400.rgb.jpg/300x300bb.jpg' },
+      { id: 'c4', title: 'El Merengue', artist: 'Marshmello & Manuel Turizo', ytId: 'z-vX2aUoX0g', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/10/9f/6a/109f6a1e-a4be-b472-a72a-e8d970e30349/196871038312.jpg/300x300bb.jpg' },
+      { id: 'c5', title: 'BABY HELLO', artist: 'Rauw Alejandro & Bizarrap', ytId: 'S_n41vN8A24', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/b8/12/57/b812574e-5c40-3023-95cf-cb937e4d8050/196871230181.jpg/300x300bb.jpg' },
+      { id: 'c6', title: 'Los del Espacio', artist: 'LIT killah, Duki, Emilia', ytId: 'T8X9dM4n-Q0', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/19/21/ed/1921edbf-803d-82d2-28e9-df75fb8fb5c6/5054197682283.jpg/300x300bb.jpg' },
+      { id: 'c7', title: 'Polaris Remix', artist: 'Saiko, Quevedo, Feid', ytId: 'm4Xo4J2w8mQ', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/80/7e/40/807e408d-73a7-548d-6925-502011bfa30f/8445162810059.jpg/300x300bb.jpg' },
+      { id: 'c8', title: 'CORAZÓN VACÍO', artist: 'Maria Becerra', ytId: 'u4kI1C4l0E4', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/2b/23/ef/2b23ef24-69c7-5058-29be-4e78f69f2e30/5054197693992.jpg/300x300bb.jpg' },
+      { id: 'c9', title: 'MONACO', artist: 'Bad Bunny', ytId: 'f0X90C8eA4M', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/21/f0/3a/21f03a6c-59df-961d-7206-8d6ef7174db1/197188898145.jpg/300x300bb.jpg' },
+      { id: 'c10', title: 'LUNA', artist: 'Feid & ATL Jacob', ytId: 'sL2B734a2e0', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/91/9e/c3/919ec31a-f739-9686-22a8-a3f2db724e8e/23UMGIM95156.rgb.jpg/300x300bb.jpg' },
+      { id: 'c11', title: 'Reina', artist: 'Mora & Saiko', ytId: '8qL7d9Z9b-A', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/e5/22/02/e52202bc-b80c-0331-508b-ee5fa65cb65a/197188737383.jpg/300x300bb.jpg' },
+      { id: 'c12', title: 'Madrid City', artist: 'Ana Mena', ytId: 'P7D4lB5M2sY', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/e2/ee/2e/e2ee2e2d-3047-9f6b-0b16-560416fb98d8/196871460595.jpg/300x300bb.jpg' }
     ];
 
     // Lista de Artistas Top
@@ -294,7 +248,7 @@
       const songGrid = document.getElementById('top-songs-grid');
       songGrid.innerHTML = '';
       topCanciones.forEach(item => {
-        songGrid.appendChild(crearTarjeta(item.title, item.artist, item.cover, item.audio, item.id, false));
+        songGrid.appendChild(crearTarjeta(item.title, item.artist, item.cover, item.ytId, item.id, false));
       });
 
       const artistGrid = document.getElementById('top-artists-grid');
@@ -337,14 +291,10 @@
       const titleEl = document.getElementById('search-title');
       const gridEl = document.getElementById('search-grid');
       titleEl.innerText = `Resultados para "${query}"`;
-      gridEl.innerHTML = '<p class="status-msg">Buscando canciones...</p>';
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      gridEl.innerHTML = '<p class="status-msg">Buscando canciones completas...</p>';
 
       try {
-        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=18`, { signal: controller.signal });
-        clearTimeout(timeoutId);
+        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=18`);
         const data = await res.json();
 
         gridEl.innerHTML = '';
@@ -355,19 +305,20 @@
 
         data.results.forEach(track => {
           const coverUrl = track.artworkUrl100 ? track.artworkUrl100.replace('100x100bb', '300x300bb') : '';
-          gridEl.appendChild(crearTarjeta(track.trackName, track.artistName, coverUrl, track.previewUrl, track.trackId, false));
+          // Búsqueda dinámica directa de YouTube
+          const searchQuery = encodeURIComponent(`${track.trackName} ${track.artistName}`);
+          gridEl.appendChild(crearTarjeta(track.trackName, track.artistName, coverUrl, searchQuery, track.trackId, false, true));
         });
 
       } catch (err) {
-        clearTimeout(timeoutId);
-        gridEl.innerHTML = '<p class="status-msg" style="color: #ff5555;">No se pudo completar la búsqueda en este momento. Inténtalo de nuevo.</p>';
+        gridEl.innerHTML = '<p class="status-msg" style="color: #ff5555;">Error al realizar la búsqueda. Inténtalo de nuevo.</p>';
       }
     }
 
-    function crearTarjeta(title, artist, coverUrl, audioUrl, id, esArtista = false) {
+    function crearTarjeta(title, artist, coverUrl, ytSource, id, esArtista = false, esBusquedaDirecta = false) {
       const card = document.createElement('div');
       card.className = 'card';
-      card.onclick = () => reproducir(audioUrl, title, artist, coverUrl, id);
+      card.onclick = () => reproducirCompleta(ytSource, title, artist, coverUrl, id, true, esBusquedaDirecta);
 
       const img = document.createElement('img');
       if (esArtista) img.className = 'card-artist-img';
@@ -388,20 +339,23 @@
       return card;
     }
 
-    function reproducir(audioUrl, title, artist, coverUrl, id, guardar = true) {
+    function reproducirCompleta(ytSource, title, artist, coverUrl, id, guardar = true, esBusquedaDirecta = false) {
       document.getElementById('nowTitle').innerText = title;
       document.getElementById('nowArtist').innerText = artist;
       
       const coverImg = document.getElementById('playerCover');
       cargarImagenSegura(coverImg, coverUrl, generarCoverSVG(title, artist, false));
 
-      const player = document.getElementById('audioPlayer');
-      if (audioUrl) {
-        player.src = audioUrl;
-        player.play().catch(() => {});
+      const ytPlayer = document.getElementById('ytPlayer');
+      
+      // Reproducir versión completa a través del reproductor incrustado de YouTube
+      if (esBusquedaDirecta) {
+        ytPlayer.src = `https://www.youtube.com/embed?listType=search&list=${ytSource}&autoplay=1`;
+      } else {
+        ytPlayer.src = `https://www.youtube.com/embed/${ytSource}?autoplay=1`;
       }
 
-      if (guardar && id) guardarEnBiblioteca({ id, title, artist, cover: coverUrl, audio: audioUrl });
+      if (guardar && id) guardarEnBiblioteca({ id, title, artist, cover: coverUrl, ytSource, esBusquedaDirecta });
     }
 
     function cargarBiblioteca() {
@@ -410,12 +364,12 @@
       const favs = JSON.parse(localStorage.getItem('carlosv8_library') || '[]');
 
       if (favs.length === 0) {
-        grid.innerHTML = '<p class="status-msg">Tu biblioteca está vacía. Reproduce cualquier canción para que aparezca aquí automáticamente.</p>';
+        grid.innerHTML = '<p class="status-msg">Tu biblioteca está vacía. Selecciona cualquier canción para guardarla aquí.</p>';
         return;
       }
 
       favs.forEach(item => {
-        grid.appendChild(crearTarjeta(item.title, item.artist, item.cover, item.audio, item.id, false));
+        grid.appendChild(crearTarjeta(item.title, item.artist, item.cover, item.ytSource, item.id, false, item.esBusquedaDirecta));
       });
     }
 
