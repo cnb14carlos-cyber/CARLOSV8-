@@ -136,7 +136,7 @@
   <!-- Barra del Reproductor -->
   <footer class="player-bar">
     <div class="track-info">
-      <img id="playerCover" src="" alt="Cover">
+      <img id="playerCover" src="" alt="">
       <div class="track-details">
         <h4 id="nowTitle">Selecciona una canción</h4>
         <p id="nowArtist">CarlosV8 Player</p>
@@ -146,63 +146,71 @@
   </footer>
 
   <script>
-    // Generador de portadas de respaldo dinámicas estilizadas en SVG
-    function crearCoverSVG(texto, subtexto, esArtista = false) {
-      const colores = [
-        ['#833ab4', '#fd1d1d', '#fcb045'],
+    // Generador de portadas de respaldo dinámicas estilizadas en Base64 (100% a prueba de fallos)
+    function generarCoverSVG(titulo, artista, esArtista = false) {
+      const paletas = [
+        ['#1DB954', '#121212'],
+        ['#833ab4', '#fd1d1d'],
         ['#00c6ff', '#0072ff'],
         ['#f857a6', '#ff5858'],
-        ['#11998e', '#38ef7d'],
-        ['#FF416C', '#FF4B2B'],
         ['#7F00FF', '#E100FF'],
-        ['#1DB954', '#191414']
+        ['#FF416C', '#FF4B2B'],
+        ['#11998e', '#38ef7d']
       ];
-      const paleta = colores[Math.abs(texto.split('').reduce((a,b)=>a+b.charCodeAt(0),0)) % colores.length];
-      const gradiente = paleta.length === 3 
-        ? `<linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${paleta[0]}"/><stop offset="50%" stop-color="${paleta[1]}"/><stop offset="100%" stop-color="${paleta[2]}"/></linearGradient>`
-        : `<linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${paleta[0]}"/><stop offset="100%" stop-color="${paleta[1]}"/></linearGradient>`;
+      let hash = 0;
+      const str = titulo + (artista || '');
+      for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      const color = paletas[Math.abs(hash) % paletas.length];
 
+      const iniciales = titulo.trim().split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || '🎵';
       const icono = esArtista ? '🎤' : '🎵';
-      const iniciales = texto.substring(0, 2).toUpperCase();
 
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">
-        <defs>${gradiente}</defs>
+        <defs>
+          <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="${color[0]}"/>
+            <stop offset="100%" stop-color="${color[1]}"/>
+          </linearGradient>
+        </defs>
         <rect width="100%" height="100%" fill="url(#g)"/>
-        <circle cx="150" cy="120" r="50" fill="rgba(0,0,0,0.2)"/>
-        <text x="150" y="130" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">${iniciales}</text>
-        <text x="150" y="210" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffffff" text-anchor="middle">${icono} ${texto.substring(0, 15)}</text>
-        <text x="150" y="235" font-family="Arial, sans-serif" font-size="14" fill="rgba(255,255,255,0.8)" text-anchor="middle">${subtexto ? subtexto.substring(0, 20) : ''}</text>
+        <circle cx="150" cy="130" r="55" fill="rgba(0,0,0,0.25)"/>
+        <text x="150" y="145" font-family="Arial, sans-serif" font-size="44" font-weight="900" fill="#ffffff" text-anchor="middle">${iniciales}</text>
+        <text x="150" y="225" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#ffffff" text-anchor="middle">${icono}</text>
       </svg>`;
 
-      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+      return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
     }
 
-    // Lista ampliada de Top Canciones
-    const topCanciones = [
-      { id: 'c1', title: 'Columbia', artist: 'Quevedo', audio: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo116/v4/37/74/d2/3774d221-3958-8b98-333e-11005a76793f/mzaf_13593368297771746205.plus.aac.p.m4a' },
-      { id: 'c2', title: 'LALA', artist: 'Myke Towers', audio: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo126/v4/6d/82/3b/6d823b12-98e3-057d-411a-1d54f5d13a9d/mzaf_16480376175949666012.plus.aac.p.m4a' },
-      { id: 'c3', title: 'Classy 101', artist: 'Feid & Young Miko', audio: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo116/v4/bf/2d/e9/bf2de90f-3151-54b1-4122-38d6df022a4b/mzaf_10258169123019803276.plus.aac.p.m4a' },
-      { id: 'c4', title: 'El Merengue', artist: 'Marshmello & Manuel Turizo', audio: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo126/v4/f4/11/17/f411171a-28e4-86a3-2d21-f05cb023cb30/mzaf_11333790538054002622.plus.aac.p.m4a' },
-      { id: 'c5', title: 'BABY HELLO', artist: 'Rauw Alejandro & Bizarrap', audio: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo116/v4/b8/12/57/b812574e-5c40-3023-95cf-cb937e4d8050/mzaf_16942129532912423374.plus.aac.p.m4a' },
-      { id: 'c6', title: 'Los del Espacio', artist: 'LIT killah, Duki, Emilia', audio: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo116/v4/19/21/ed/1921edbf-803d-82d2-28e9-df75fb8fb5c6/mzaf_10332847627407519961.plus.aac.p.m4a' },
-      { id: 'c7', title: 'Polaris Remix', artist: 'Saiko, Quevedo, Feid', audio: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo116/v4/80/7e/40/807e408d-73a7-548d-6925-502011bfa30f/mzaf_843194857213898166.plus.aac.p.m4a' },
-      { id: 'c8', title: 'CORAZÓN VACÍO', artist: 'Maria Becerra', audio: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo126/v4/2b/23/ef/2b23ef24-69c7-5058-29be-4e78f69f2e30/mzaf_14092419266318991410.plus.aac.p.m4a' }
+    // Lista Completa de Canciones Top
+    const topCancionesBase = [
+      { id: 'c1', title: 'Columbia', artist: 'Quevedo', query: 'Quevedo Columbia' },
+      { id: 'c2', title: 'LALA', artist: 'Myke Towers', query: 'Myke Towers LALA' },
+      { id: 'c3', title: 'Classy 101', artist: 'Feid & Young Miko', query: 'Feid Classy 101' },
+      { id: 'c4', title: 'El Merengue', artist: 'Marshmello & Manuel Turizo', query: 'Marshmello El Merengue' },
+      { id: 'c5', title: 'BABY HELLO', artist: 'Rauw Alejandro & Bizarrap', query: 'Rauw Alejandro BABY HELLO' },
+      { id: 'c6', title: 'Los del Espacio', artist: 'LIT killah, Duki, Emilia', query: 'LIT killah Los del Espacio' },
+      { id: 'c7', title: 'Polaris Remix', artist: 'Saiko, Quevedo, Feid', query: 'Saiko Polaris Remix' },
+      { id: 'c8', title: 'CORAZÓN VACÍO', artist: 'Maria Becerra', query: 'Maria Becerra CORAZON VACIO' },
+      { id: 'c9', title: 'MONACO', artist: 'Bad Bunny', query: 'Bad Bunny MONACO' },
+      { id: 'c10', title: 'LUNA', artist: 'Feid & ATL Jacob', query: 'Feid LUNA' },
+      { id: 'c11', title: 'Reina', artist: 'Mora & Saiko', query: 'Mora Reina' },
+      { id: 'c12', title: 'Madrid City', artist: 'Ana Mena', query: 'Ana Mena Madrid City' }
     ];
 
-    // Lista ampliada de Top Artistas
-    const topArtistas = [
+    // Lista Completa de Artistas Top
+    const topArtistasBase = [
       { name: 'Quevedo' },
       { name: 'Feid' },
       { name: 'Bad Bunny' },
       { name: 'Myke Towers' },
       { name: 'Rauw Alejandro' },
+      { name: 'Saiko' },
       { name: 'Bizarrap' },
-      { name: 'Maria Becerra' },
-      { name: 'Duki' }
+      { name: 'Maria Becerra' }
     ];
 
     document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('playerCover').src = crearCoverSVG('CarlosV8', 'Music');
+      document.getElementById('playerCover').src = generarCoverSVG('CarlosV8', 'Music');
       cargarInicio();
     });
 
@@ -219,18 +227,35 @@
       if (seccion === 'biblioteca') cargarBiblioteca();
     }
 
+    // Renderiza la sección de Inicio inmediatamente y busca datos actualizados de iTunes
     function cargarInicio() {
       const songGrid = document.getElementById('top-songs-grid');
       songGrid.innerHTML = '';
-      topCanciones.forEach(item => {
-        const coverUrl = crearCoverSVG(item.title, item.artist, false);
-        songGrid.appendChild(crearTarjeta(item.title, item.artist, coverUrl, item.audio, item.id));
+
+      topCancionesBase.forEach(item => {
+        const fallbackCover = generarCoverSVG(item.title, item.artist, false);
+        const card = crearTarjeta(item.title, item.artist, fallbackCover, '', item.id);
+        card.id = `card-song-${item.id}`;
+        songGrid.appendChild(card);
+
+        // Obtener la canción y portada real directamente de iTunes
+        fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(item.query)}&entity=song&limit=1`)
+          .then(r => r.json())
+          .then(data => {
+            if (data.results && data.results.length > 0) {
+              const track = data.results[0];
+              const realCover = track.artworkUrl100 ? track.artworkUrl100.replace('100x100bb', '300x300bb') : fallbackCover;
+              const imgEl = card.querySelector('img');
+              if (imgEl) imgEl.src = realCover;
+              card.onclick = () => reproducir(track.previewUrl, track.trackName, track.artistName, realCover, item.id);
+            }
+          }).catch(() => {});
       });
 
       const artistGrid = document.getElementById('top-artists-grid');
       artistGrid.innerHTML = '';
-      topArtistas.forEach(artist => {
-        const coverUrl = crearCoverSVG(artist.name, 'Artista', true);
+      topArtistasBase.forEach((artist, idx) => {
+        const fallbackCover = generarCoverSVG(artist.name, 'Artista', true);
         const card = document.createElement('div');
         card.className = 'card';
         card.onclick = () => {
@@ -239,11 +264,22 @@
           ejecutarBusqueda();
         };
         card.innerHTML = `
-          <img src="${coverUrl}" class="card-artist-img" alt="${artist.name}">
+          <img src="${fallbackCover}" class="card-artist-img" alt="" onerror="this.onerror=null;this.src='${fallbackCover}';">
           <div class="card-title" style="text-align:center;">${artist.name}</div>
           <div class="card-sub" style="text-align:center;">Artista</div>
         `;
         artistGrid.appendChild(card);
+
+        // Buscar foto de artista en iTunes
+        fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist.name)}&entity=song&limit=1`)
+          .then(r => r.json())
+          .then(data => {
+            if (data.results && data.results.length > 0) {
+              const realCover = data.results[0].artworkUrl100.replace('100x100bb', '300x300bb');
+              const imgEl = card.querySelector('img');
+              if (imgEl) imgEl.src = realCover;
+            }
+          }).catch(() => {});
       });
     }
 
@@ -261,7 +297,7 @@
       const timeoutId = setTimeout(() => controller.abort(), 4000);
 
       try {
-        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=16`, { signal: controller.signal });
+        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=18`, { signal: controller.signal });
         clearTimeout(timeoutId);
         const data = await res.json();
 
@@ -272,7 +308,8 @@
         }
 
         data.results.forEach(track => {
-          const coverUrl = track.artworkUrl100 ? track.artworkUrl100.replace('100x100bb', '300x300bb') : crearCoverSVG(track.trackName, track.artistName);
+          const fallbackCover = generarCoverSVG(track.trackName, track.artistName);
+          const coverUrl = track.artworkUrl100 ? track.artworkUrl100.replace('100x100bb', '300x300bb') : fallbackCover;
           gridEl.appendChild(crearTarjeta(track.trackName, track.artistName, coverUrl, track.previewUrl, track.trackId));
         });
 
@@ -285,9 +322,10 @@
     function crearTarjeta(title, artist, cover, audioUrl, id) {
       const card = document.createElement('div');
       card.className = 'card';
-      card.onclick = () => reproducir(audioUrl, title, artist, cover, id);
+      const fallback = generarCoverSVG(title, artist);
+      card.onclick = () => reproducir(audioUrl, title, artist, cover || fallback, id);
       card.innerHTML = `
-        <img src="${cover}" onerror="this.onerror=null;this.src='${crearCoverSVG(title, artist)}';" alt="${title}">
+        <img src="${cover || fallback}" alt="" onerror="this.onerror=null;this.src='${fallback}';">
         <div class="card-title">${title}</div>
         <div class="card-sub">${artist}</div>
       `;
@@ -295,17 +333,20 @@
     }
 
     function reproducir(audioUrl, title, artist, cover, id, guardar = true) {
+      if (!audioUrl) return;
       document.getElementById('nowTitle').innerText = title;
       document.getElementById('nowArtist').innerText = artist;
       
       const coverImg = document.getElementById('playerCover');
-      coverImg.src = cover;
+      const fallback = generarCoverSVG(title, artist);
+      coverImg.src = cover || fallback;
+      coverImg.onerror = () => { coverImg.src = fallback; };
 
       const player = document.getElementById('audioPlayer');
       player.src = audioUrl;
       player.play().catch(() => {});
 
-      if (guardar) guardarEnBiblioteca({ id, title, artist, cover, audio: audioUrl });
+      if (guardar) guardarEnBiblioteca({ id, title, artist, cover: cover || fallback, audio: audioUrl });
     }
 
     function cargarBiblioteca() {
