@@ -3,51 +3,131 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CarlosV8 - Music</title>
+  <title>CarlosV8 - Player</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
-    body { background-color: #0f0f0f; color: #ffffff; min-height: 100vh; padding-bottom: 110px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background-color: #0f0f0f; color: #ffffff; min-height: 100vh; padding-bottom: 110px; overflow-x: hidden; }
 
-    .app-container { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; max-width: 1300px; margin: 0 auto; }
+    /* Contenedor Principal con Menú Lateral */
+    .app-layout { display: flex; min-height: calc(100vh - 90px); }
 
     /* Menú Lateral */
-    .sidebar { width: 230px; background: #181818; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 10px; height: fit-content; }
-    .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer; }
-    .logo-v8 { width: 40px; height: 40px; background: #1DB954; color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; }
-    .brand h2 { color: #1DB954; font-size: 22px; }
+    .sidebar { 
+      width: 240px; 
+      background: #121212; 
+      padding: 20px; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 16px; 
+      border-right: 1px solid #222;
+      flex-shrink: 0;
+    }
 
-    .menu-btn { background: transparent; border: none; color: #b3b3b3; padding: 12px 14px; border-radius: 8px; font-weight: bold; font-size: 14px; text-align: left; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; }
-    .menu-btn:hover, .menu-btn.active { background: #282828; color: #fff; }
+    .brand { display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 10px; }
+    .logo-v8 { 
+      width: 40px; 
+      height: 40px; 
+      background: #1DB954; 
+      color: #000; 
+      border-radius: 50%; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-weight: 900; 
+      font-size: 18px; 
+    }
+    .brand h2 { color: #1DB954; font-size: 22px; font-weight: 800; }
 
-    /* Panel Principal */
-    .main-content { flex: 1; min-width: 300px; background: #181818; border-radius: 12px; padding: 24px; }
-    .search-box { display: flex; gap: 10px; max-width: 500px; margin-bottom: 20px; }
-    .search-box input { flex: 1; padding: 12px 18px; border-radius: 50px; border: 1px solid #333; background: #242424; color: #fff; outline: none; }
-    .search-box button { background: #1DB954; border: none; padding: 12px 22px; border-radius: 50px; font-weight: bold; cursor: pointer; color: #000; }
+    .menu-btn { 
+      background: transparent; 
+      border: none; 
+      color: #b3b3b3; 
+      padding: 12px 16px; 
+      border-radius: 8px; 
+      font-weight: 700; 
+      font-size: 14px; 
+      text-align: left; 
+      cursor: pointer; 
+      transition: 0.2s; 
+      display: flex; 
+      align-items: center; 
+      gap: 12px; 
+    }
+    .menu-btn:hover, .menu-btn.active { background: #282828; color: #ffffff; }
 
-    .section-title { font-size: 22px; font-weight: bold; margin: 20px 0 14px 0; color: #fff; }
-    .grid-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
+    /* Área Principal */
+    .main-content { flex: 1; padding: 24px; background: #181818; min-width: 0; }
 
-    /* Tarjetas */
-    .card { background: #222; padding: 12px; border-radius: 10px; cursor: pointer; transition: 0.2s; }
-    .card:hover { background: #2e2e2e; transform: translateY(-3px); }
-    .card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; margin-bottom: 8px; background: #333; }
+    .search-box { display: flex; gap: 12px; max-width: 500px; margin-bottom: 24px; }
+    .search-box input { 
+      flex: 1; 
+      padding: 12px 20px; 
+      border-radius: 50px; 
+      border: 1px solid #333; 
+      background: #242424; 
+      color: #fff; 
+      outline: none; 
+      font-size: 14px;
+    }
+    .search-box button { 
+      background: #1DB954; 
+      border: none; 
+      padding: 12px 24px; 
+      border-radius: 50px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      color: #000; 
+      transition: 0.2s;
+    }
+    .search-box button:hover { background: #1ed760; }
+
+    .section-title { font-size: 22px; font-weight: bold; margin: 24px 0 16px 0; color: #fff; }
+    
+    /* Rejilla de Tarjetas */
+    .grid-layout { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+      gap: 18px; 
+    }
+
+    .card { 
+      background: #222222; 
+      padding: 14px; 
+      border-radius: 10px; 
+      cursor: pointer; 
+      transition: transform 0.2s, background 0.2s; 
+    }
+    .card:hover { background: #2e2e2e; transform: translateY(-4px); }
+    .card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; margin-bottom: 10px; background: #333; }
     .card-artist-img { border-radius: 50% !important; }
-    .card-title { font-size: 13px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .card-sub { font-size: 11px; color: #aaa; margin-top: 3px; }
+    .card-title { font-size: 14px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-sub { font-size: 12px; color: #aaa; margin-top: 4px; }
 
-    /* Reproductor Inferior */
-    .player-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 90px; background: #121212; border-top: 1px solid #282828; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; }
-    .track-info { display: flex; align-items: center; gap: 12px; width: 30%; }
-    .track-info img { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; background: #222; }
+    /* Reproductor Inferior Fijo */
+    .player-bar { 
+      position: fixed; 
+      bottom: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 90px; 
+      background: #121212; 
+      border-top: 1px solid #282828; 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      padding: 0 24px; 
+      z-index: 1000; 
+    }
+    .track-info { display: flex; align-items: center; gap: 14px; width: 30%; }
+    .track-info img { width: 52px; height: 52px; border-radius: 6px; object-fit: cover; background: #222; }
     audio { width: 45%; height: 40px; filter: invert(100%) hue-rotate(90deg); }
   </style>
 </head>
 <body>
 
-  <div class="app-container">
+  <div class="app-layout">
     <!-- Menú Lateral -->
-    <div class="sidebar">
+    <aside class="sidebar">
       <div class="brand" onclick="mostrarInicio()">
         <div class="logo-v8">V8</div>
         <h2>CarlosV8</h2>
@@ -55,13 +135,13 @@
       <button class="menu-btn active" id="btnInicio" onclick="mostrarInicio()">🏠 Inicio</button>
       <button class="menu-btn" id="btnBuscar" onclick="enfocarBuscador()">🔍 Buscar</button>
       <button class="menu-btn" id="btnBiblioteca" onclick="mostrarBiblioteca()">📚 Tu biblioteca</button>
-    </div>
+    </aside>
 
-    <!-- Panel Principal -->
-    <div class="main-content">
+    <!-- Área Principal -->
+    <main class="main-content">
       <div class="search-box">
-        <input type="text" id="searchInput" placeholder="¿Qué quieres escuchar hoy?" onkeypress="if(event.key==='Enter') realizarBusqueda()">
-        <button onclick="realizarBusqueda()">Buscar</button>
+        <input type="text" id="searchInput" placeholder="¿Qué quieres escuchar hoy?" onkeypress="if(event.key==='Enter') buscarMusica()">
+        <button onclick="buscarMusica()">Buscar</button>
       </div>
 
       <!-- Vista de Inicio -->
@@ -73,28 +153,41 @@
         <div class="grid-layout" id="topArtistsGrid"></div>
       </div>
 
-      <!-- Vista Dinámica (Búsqueda / Biblioteca) -->
+      <!-- Vista Dinámica (Resultados / Biblioteca) -->
       <div id="viewDynamic" style="display: none;">
         <h3 class="section-title" id="dynamicTitle">Resultados</h3>
         <div class="grid-layout" id="dynamicGrid"></div>
       </div>
-    </div>
+    </main>
   </div>
 
   <!-- Barra de Reproducción -->
-  <div class="player-bar">
+  <footer class="player-bar">
     <div class="track-info">
-      <div id="coverBox" style="width: 48px; height: 48px; background: #222; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 20px;">🎵</div>
+      <img id="playerCover" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='52' height='52'><rect width='100%' height='100%' fill='%23222'/></svg>" alt="Cover">
       <div>
         <h4 id="nowTitle" style="font-size: 14px;">Selecciona una canción</h4>
         <p id="nowArtist" style="font-size: 12px; color: #aaa;">CarlosV8 Player</p>
       </div>
     </div>
     <audio id="audioPlayer" controls autoplay></audio>
-  </div>
+  </footer>
 
   <script>
-    let scriptTag = null;
+    // Base de datos local instantánea (Garantiza que la web NUNCA esté vacía)
+    const cancionesTopBase = [
+      { id: 1, title: "LALA", artist: "Myke Towers", cover: "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/44/21/87/442187f8-7b8c-1e82-2a78-2bf0f9d94f27/197188350711.jpg/300x300bb.jpg", url: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo126/v4/6d/82/3b/6d823b12-98e3-057d-411a-1d54f5d13a9d/mzaf_16480376175949666012.plus.aac.p.m4a" },
+      { id: 2, title: "Columbia", artist: "Quevedo", cover: "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/9c/6b/a8/9c6ba8db-4e92-3d23-7a91-4d048fa5d24b/8445162402179.jpg/300x300bb.jpg", url: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo116/v4/37/74/d2/3774d221-3958-8b98-333e-11005a76793f/mzaf_13593368297771746205.plus.aac.p.m4a" },
+      { id: 3, title: "Classy 101", artist: "Feid & Young Miko", cover: "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/80/4f/9b/804f9b8c-5722-1d5f-1e87-f8e1bc98918a/23UMGIM33400.rgb.jpg/300x300bb.jpg", url: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo116/v4/bf/2d/e9/bf2de90f-3151-54b1-4122-38d6df022a4b/mzaf_10258169123019803276.plus.aac.p.m4a" },
+      { id: 4, title: "El Merengue", artist: "Marshmello & Manuel Turizo", cover: "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/10/9f/6a/109f6a1e-a4be-b472-a72a-e8d970e30349/196871038312.jpg/300x300bb.jpg", url: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo126/v4/f4/11/17/f411171a-28e4-86a3-2d21-f05cb023cb30/mzaf_11333790538054002622.plus.aac.p.m4a" }
+    ];
+
+    const artistasTopBase = [
+      { name: "Quevedo", photo: "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/9c/6b/a8/9c6ba8db-4e92-3d23-7a91-4d048fa5d24b/8445162402179.jpg/300x300bb.jpg" },
+      { name: "Feid", photo: "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/80/4f/9b/804f9b8c-5722-1d5f-1e87-f8e1bc98918a/23UMGIM33400.rgb.jpg/300x300bb.jpg" },
+      { name: "Bad Bunny", photo: "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/21/f0/3a/21f03a6c-59df-961d-7206-8d6ef7174db1/197188898145.jpg/300x300bb.jpg" },
+      { name: "Myke Towers", photo: "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/44/21/87/442187f8-7b8c-1e82-2a78-2bf0f9d94f27/197188350711.jpg/300x300bb.jpg" }
+    ];
 
     window.onload = function() {
       cargarInicio();
@@ -105,62 +198,56 @@
       document.getElementById(id).classList.add('active');
     }
 
-    /* 1. Cargar Inicio sin errores de CORS */
     function cargarInicio() {
       activarBoton('btnInicio');
       document.getElementById('viewInicio').style.display = 'block';
       document.getElementById('viewDynamic').style.display = 'none';
 
-      // Petición JSONP para Canciones Top
-      hacerPeticionJSONP('https://itunes.apple.com/search?term=latin+top+hits&entity=song&limit=6&callback=renderTopSongs');
-      
-      // Petición JSONP para Artistas Top
-      hacerPeticionJSONP('https://itunes.apple.com/search?term=duki+quevedo+bizarrap+feid&entity=song&limit=6&callback=renderTopArtists');
-    }
-
-    window.renderTopSongs = function(data) {
-      const grid = document.getElementById('topSongsGrid');
-      grid.innerHTML = '';
-      if (!data.results) return;
-
-      data.results.forEach(track => {
-        const cover = track.artworkUrl100.replace('100x100bb', '300x300bb');
+      // Renderizar Canciones Top
+      const songsGrid = document.getElementById('topSongsGrid');
+      songsGrid.innerHTML = '';
+      cancionesTopBase.forEach(song => {
         const card = document.createElement('div');
         card.className = 'card';
-        card.onclick = () => reproducir(track.previewUrl, track.trackName, track.artistName, cover, track.trackId);
+        card.onclick = () => reproducir(song.url, song.title, song.artist, song.cover, song.id);
         card.innerHTML = `
-          <img src="${cover}" alt="Cover">
-          <div class="card-title">${track.trackName}</div>
-          <div class="card-sub">${track.artistName}</div>
+          <img src="${song.cover}" alt="Cover">
+          <div class="card-title">${song.title}</div>
+          <div class="card-sub">${song.artist}</div>
         `;
-        grid.appendChild(card);
+        songsGrid.appendChild(card);
       });
-    };
 
-    window.renderTopArtists = function(data) {
-      const grid = document.getElementById('topArtistsGrid');
-      grid.innerHTML = '';
-      if (!data.results) return;
-
-      data.results.forEach(track => {
-        const cover = track.artworkUrl100.replace('100x100bb', '300x300bb');
+      // Renderizar Artistas Top
+      const artistsGrid = document.getElementById('topArtistsGrid');
+      artistsGrid.innerHTML = '';
+      artistasTopBase.forEach(artist => {
         const card = document.createElement('div');
         card.className = 'card';
         card.onclick = () => {
-          document.getElementById('searchInput').value = track.artistName;
-          realizarBusqueda();
+          document.getElementById('searchInput').value = artist.name;
+          buscarMusica();
         };
         card.innerHTML = `
-          <img src="${cover}" class="card-artist-img" alt="Artist">
-          <div class="card-title" style="text-align:center;">${track.artistName}</div>
+          <img src="${artist.photo}" class="card-artist-img" alt="Artist">
+          <div class="card-title" style="text-align:center;">${artist.name}</div>
           <div class="card-sub" style="text-align:center;">Artista</div>
         `;
-        grid.appendChild(card);
+        artistsGrid.appendChild(card);
       });
-    };
+    }
 
-    /* 2. Buscador 100% Inmune a Bloqueos */
-    function realizarBusqueda() {
+    function mostrarInicio() {
+      cargarInicio();
+    }
+
+    function enfocarBuscador() {
+      activarBoton('btnBuscar');
+      const input = document.getElementById('searchInput');
+      input.focus();
+    }
+
+    async function buscarMusica() {
       activarBoton('btnBuscar');
       const query = document.getElementById('searchInput').value.trim();
       if (!query) return;
@@ -170,44 +257,34 @@
       document.getElementById('dynamicTitle').innerText = `Resultados para "${query}"`;
 
       const grid = document.getElementById('dynamicGrid');
-      grid.innerHTML = '<p style="color:#aaa;">Cargando resultados...</p>';
+      grid.innerHTML = '<p style="color:#aaa;">Buscando canciones...</p>';
 
-      hacerPeticionJSONP(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=18&callback=renderBusqueda`);
-    }
+      try {
+        const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=15`);
+        const data = await response.json();
+        
+        grid.innerHTML = '';
+        if (!data.results || data.results.length === 0) {
+          grid.innerHTML = '<p style="color:#aaa;">No se encontraron resultados.</p>';
+          return;
+        }
 
-    window.renderBusqueda = function(data) {
-      const grid = document.getElementById('dynamicGrid');
-      grid.innerHTML = '';
+        data.results.forEach(track => {
+          const cover = track.artworkUrl100.replace('100x100bb', '300x300bb');
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.onclick = () => reproducir(track.previewUrl, track.trackName, track.artistName, cover, track.trackId);
+          card.innerHTML = `
+            <img src="${cover}" alt="Cover">
+            <div class="card-title">${track.trackName}</div>
+            <div class="card-sub">${track.artistName}</div>
+          `;
+          grid.appendChild(card);
+        });
 
-      if (!data.results || data.results.length === 0) {
-        grid.innerHTML = '<p style="color:#aaa;">No se encontraron resultados para esta búsqueda.</p>';
-        return;
+      } catch (error) {
+        grid.innerHTML = '<p style="color:#e74c3c;">No se pudo conectar a la búsqueda. Inténtalo de nuevo.</p>';
       }
-
-      data.results.forEach(track => {
-        const cover = track.artworkUrl100.replace('100x100bb', '300x300bb');
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.onclick = () => reproducir(track.previewUrl, track.trackName, track.artistName, cover, track.trackId);
-        card.innerHTML = `
-          <img src="${cover}" alt="Cover">
-          <div class="card-title">${track.trackName}</div>
-          <div class="card-sub">${track.artistName}</div>
-        `;
-        grid.appendChild(card);
-      });
-    };
-
-    /* 3. Menú de Navegación */
-    function mostrarInicio() {
-      cargarInicio();
-    }
-
-    function enfocarBuscador() {
-      activarBoton('btnBuscar');
-      const input = document.getElementById('searchInput');
-      input.focus();
-      input.select();
     }
 
     function mostrarBiblioteca() {
@@ -216,16 +293,16 @@
       document.getElementById('viewDynamic').style.display = 'block';
       document.getElementById('dynamicTitle').innerText = '📚 Tu biblioteca';
 
-      const playlist = JSON.parse(localStorage.getItem('carlosv8_favs') || '[]');
+      const favs = JSON.parse(localStorage.getItem('carlosv8_favs') || '[]');
       const grid = document.getElementById('dynamicGrid');
       grid.innerHTML = '';
 
-      if (playlist.length === 0) {
-        grid.innerHTML = '<p style="color:#aaa;">Tu biblioteca está vacía. Escucha canciones para guardarlas aquí automáticamente.</p>';
+      if (favs.length === 0) {
+        grid.innerHTML = '<p style="color:#aaa;">Tu biblioteca está vacía. Escucha canciones para añadirlas aquí.</p>';
         return;
       }
 
-      playlist.forEach(item => {
+      favs.forEach(item => {
         const card = document.createElement('div');
         card.className = 'card';
         card.onclick = () => reproducir(item.url, item.title, item.artist, item.cover, item.id, false);
@@ -238,35 +315,22 @@
       });
     }
 
-    /* 4. Sistema de Reproducción y Guardado */
     function reproducir(url, title, artist, cover, id, guardar = true) {
       document.getElementById('nowTitle').innerText = title;
       document.getElementById('nowArtist').innerText = artist;
-      
-      const coverBox = document.getElementById('coverBox');
-      coverBox.innerHTML = `<img src="${cover}" style="width:100%; height:100%; border-radius:6px; object-fit:cover;">`;
+      document.getElementById('playerCover').src = cover;
 
       const player = document.getElementById('audioPlayer');
       player.src = url;
       player.play();
 
-      if (guardar) guardarEnBiblioteca(id, title, artist, cover, url);
-    }
-
-    function guardarEnBiblioteca(id, title, artist, cover, url) {
-      let playlist = JSON.parse(localStorage.getItem('carlosv8_favs') || '[]');
-      if (!playlist.some(item => item.id === id)) {
-        playlist.unshift({ id, title, artist, cover, url });
-        localStorage.setItem('carlosv8_favs', JSON.stringify(playlist.slice(0, 25)));
+      if (guardar) {
+        let favs = JSON.parse(localStorage.getItem('carlosv8_favs') || '[]');
+        if (!favs.some(item => item.id === id)) {
+          favs.unshift({ id, title, artist, cover, url });
+          localStorage.setItem('carlosv8_favs', JSON.stringify(favs.slice(0, 20)));
+        }
       }
-    }
-
-    /* Función Auxiliar para JSONP */
-    function hacerPeticionJSONP(url) {
-      if (scriptTag) scriptTag.remove();
-      scriptTag = document.createElement('script');
-      scriptTag.src = url;
-      document.body.appendChild(scriptTag);
     }
   </script>
 </body>
