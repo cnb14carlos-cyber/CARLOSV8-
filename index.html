@@ -28,7 +28,7 @@
     .section-title { font-size: 22px; font-weight: bold; margin: 20px 0 14px 0; color: #fff; }
     .grid-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
 
-    /* Tarjetas de Canciones y Artistas */
+    /* Tarjetas */
     .card { background: #222; padding: 12px; border-radius: 10px; cursor: pointer; transition: 0.2s; }
     .card:hover { background: #2e2e2e; transform: translateY(-3px); }
     .card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; margin-bottom: 8px; background: #333; }
@@ -46,7 +46,7 @@
 <body>
 
   <div class="app-container">
-    <!-- Menú Lateral N° 2 -->
+    <!-- Menú Lateral -->
     <div class="sidebar">
       <div class="brand" onclick="mostrarInicio()">
         <div class="logo-v8">V8</div>
@@ -60,11 +60,11 @@
     <!-- Panel Principal -->
     <div class="main-content">
       <div class="search-box">
-        <input type="text" id="searchInput" placeholder="¿Qué quieres escuchar hoy?" onkeypress="if(event.key==='Enter') buscarMusica()">
-        <button onclick="buscarMusica()">Buscar</button>
+        <input type="text" id="searchInput" placeholder="¿Qué quieres escuchar hoy?" onkeypress="if(event.key==='Enter') realizarBusqueda()">
+        <button onclick="realizarBusqueda()">Buscar</button>
       </div>
 
-      <!-- Vista de Inicio N° 1 -->
+      <!-- Vista de Inicio -->
       <div id="viewInicio">
         <h3 class="section-title">🔥 Canciones más Top</h3>
         <div class="grid-layout" id="topSongsGrid"></div>
@@ -73,7 +73,7 @@
         <div class="grid-layout" id="topArtistsGrid"></div>
       </div>
 
-      <!-- Vista de Resultados y Biblioteca N° 3 -->
+      <!-- Vista Dinámica (Búsqueda / Biblioteca) -->
       <div id="viewDynamic" style="display: none;">
         <h3 class="section-title" id="dynamicTitle">Resultados</h3>
         <div class="grid-layout" id="dynamicGrid"></div>
@@ -84,7 +84,7 @@
   <!-- Barra de Reproducción -->
   <div class="player-bar">
     <div class="track-info">
-      <img id="playerCover" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='100%' height='100%' fill='%23222'/></svg>" alt="Cover">
+      <div id="coverBox" style="width: 48px; height: 48px; background: #222; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 20px;">🎵</div>
       <div>
         <h4 id="nowTitle" style="font-size: 14px;">Selecciona una canción</h4>
         <p id="nowArtist" style="font-size: 12px; color: #aaa;">CarlosV8 Player</p>
@@ -94,8 +94,7 @@
   </div>
 
   <script>
-    const APP_NAME = 'CarlosV8Player';
-    const API_AUDIUS = 'https://discoveryprovider.audius.co/v1';
+    let scriptTag = null;
 
     window.onload = function() {
       cargarInicio();
@@ -106,72 +105,102 @@
       document.getElementById(id).classList.add('active');
     }
 
-    // 1. Cargar Inicio: Canciones y Artistas Tops
-    async function cargarInicio() {
-      const songsGrid = document.getElementById('topSongsGrid');
-      const artistsGrid = document.getElementById('topArtistsGrid');
-      songsGrid.innerHTML = '<p style="color:#aaa;">Cargando canciones top...</p>';
-      artistsGrid.innerHTML = '<p style="color:#aaa;">Cargando artistas top...</p>';
-
-      try {
-        const res = await fetch(`${API_AUDIUS}/tracks/trending?app_name=${APP_NAME}`);
-        const data = await res.json();
-        const tracks = data.data || [];
-
-        // Rellenar Canciones Top
-        songsGrid.innerHTML = '';
-        tracks.slice(0, 6).forEach(track => {
-          const cover = track.artwork ? track.artwork['150x150'] : 'https://via.placeholder.com/150/222/1DB954?text=Music';
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.onclick = () => reproducir(track.id, track.title, track.user.name, cover);
-          card.innerHTML = `
-            <img src="${cover}" alt="Cover">
-            <div class="card-title">${track.title}</div>
-            <div class="card-sub">${track.user.name}</div>
-          `;
-          songsGrid.appendChild(card);
-        });
-
-        // Rellenar Artistas Top
-        artistsGrid.innerHTML = '';
-        const artistasUnicos = [];
-        const idsVistos = new Set();
-
-        tracks.forEach(t => {
-          if (t.user && !idsVistos.has(t.user.id)) {
-            idsVistos.add(t.user.id);
-            artistasUnicos.push(t.user);
-          }
-        });
-
-        artistasUnicos.slice(0, 6).forEach(artist => {
-          const photo = artist.profile_picture ? artist.profile_picture['150x150'] : 'https://via.placeholder.com/150/333/ffffff?text=Artist';
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.onclick = () => {
-            document.getElementById('searchInput').value = artist.name;
-            buscarMusica();
-          };
-          card.innerHTML = `
-            <img src="${photo}" class="card-artist-img" alt="Artist">
-            <div class="card-title" style="text-align:center;">${artist.name}</div>
-            <div class="card-sub" style="text-align:center;">Artista</div>
-          `;
-          artistsGrid.appendChild(card);
-        });
-
-      } catch (e) {
-        songsGrid.innerHTML = '<p style="color:#e74c3c;">No se pudieron cargar los datos de la API.</p>';
-        artistsGrid.innerHTML = '';
-      }
-    }
-
-    // 2. Control del Menú de Navegación
-    function mostrarInicio() {
+    /* 1. Cargar Inicio sin errores de CORS */
+    function cargarInicio() {
       activarBoton('btnInicio');
       document.getElementById('viewInicio').style.display = 'block';
       document.getElementById('viewDynamic').style.display = 'none';
+
+      // Petición JSONP para Canciones Top
+      hacerPeticionJSONP('https://itunes.apple.com/search?term=latin+top+hits&entity=song&limit=6&callback=renderTopSongs');
+      
+      // Petición JSONP para Artistas Top
+      hacerPeticionJSONP('https://itunes.apple.com/search?term=duki+quevedo+bizarrap+feid&entity=song&limit=6&callback=renderTopArtists');
+    }
+
+    window.renderTopSongs = function(data) {
+      const grid = document.getElementById('topSongsGrid');
+      grid.innerHTML = '';
+      if (!data.results) return;
+
+      data.results.forEach(track => {
+        const cover = track.artworkUrl100.replace('100x100bb', '300x300bb');
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.onclick = () => reproducir(track.previewUrl, track.trackName, track.artistName, cover, track.trackId);
+        card.innerHTML = `
+          <img src="${cover}" alt="Cover">
+          <div class="card-title">${track.trackName}</div>
+          <div class="card-sub">${track.artistName}</div>
+        `;
+        grid.appendChild(card);
+      });
+    };
+
+    window.renderTopArtists = function(data) {
+      const grid = document.getElementById('topArtistsGrid');
+      grid.innerHTML = '';
+      if (!data.results) return;
+
+      data.results.forEach(track => {
+        const cover = track.artworkUrl100.replace('100x100bb', '300x300bb');
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.onclick = () => {
+          document.getElementById('searchInput').value = track.artistName;
+          realizarBusqueda();
+        };
+        card.innerHTML = `
+          <img src="${cover}" class="card-artist-img" alt="Artist">
+          <div class="card-title" style="text-align:center;">${track.artistName}</div>
+          <div class="card-sub" style="text-align:center;">Artista</div>
+        `;
+        grid.appendChild(card);
+      });
+    };
+
+    /* 2. Buscador 100% Inmune a Bloqueos */
+    function realizarBusqueda() {
+      activarBoton('btnBuscar');
+      const query = document.getElementById('searchInput').value.trim();
+      if (!query) return;
+
+      document.getElementById('viewInicio').style.display = 'none';
+      document.getElementById('viewDynamic').style.display = 'block';
+      document.getElementById('dynamicTitle').innerText = `Resultados para "${query}"`;
+
+      const grid = document.getElementById('dynamicGrid');
+      grid.innerHTML = '<p style="color:#aaa;">Cargando resultados...</p>';
+
+      hacerPeticionJSONP(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=18&callback=renderBusqueda`);
+    }
+
+    window.renderBusqueda = function(data) {
+      const grid = document.getElementById('dynamicGrid');
+      grid.innerHTML = '';
+
+      if (!data.results || data.results.length === 0) {
+        grid.innerHTML = '<p style="color:#aaa;">No se encontraron resultados para esta búsqueda.</p>';
+        return;
+      }
+
+      data.results.forEach(track => {
+        const cover = track.artworkUrl100.replace('100x100bb', '300x300bb');
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.onclick = () => reproducir(track.previewUrl, track.trackName, track.artistName, cover, track.trackId);
+        card.innerHTML = `
+          <img src="${cover}" alt="Cover">
+          <div class="card-title">${track.trackName}</div>
+          <div class="card-sub">${track.artistName}</div>
+        `;
+        grid.appendChild(card);
+      });
+    };
+
+    /* 3. Menú de Navegación */
+    function mostrarInicio() {
+      cargarInicio();
     }
 
     function enfocarBuscador() {
@@ -185,21 +214,21 @@
       activarBoton('btnBiblioteca');
       document.getElementById('viewInicio').style.display = 'none';
       document.getElementById('viewDynamic').style.display = 'block';
-      document.getElementById('dynamicTitle').innerText = '📚 Tu biblioteca (Historial de reproducciones)';
+      document.getElementById('dynamicTitle').innerText = '📚 Tu biblioteca';
 
-      const playlist = JSON.parse(localStorage.getItem('biblioteca_carlosv8') || '[]');
+      const playlist = JSON.parse(localStorage.getItem('carlosv8_favs') || '[]');
       const grid = document.getElementById('dynamicGrid');
       grid.innerHTML = '';
 
       if (playlist.length === 0) {
-        grid.innerHTML = '<p style="color:#aaa;">Tu biblioteca está vacía. Reproduce canciones para que se guarden aquí.</p>';
+        grid.innerHTML = '<p style="color:#aaa;">Tu biblioteca está vacía. Escucha canciones para guardarlas aquí automáticamente.</p>';
         return;
       }
 
       playlist.forEach(item => {
         const card = document.createElement('div');
         card.className = 'card';
-        card.onclick = () => reproducir(item.id, item.title, item.artist, item.cover, false);
+        card.onclick = () => reproducir(item.url, item.title, item.artist, item.cover, item.id, false);
         card.innerHTML = `
           <img src="${item.cover}" alt="Cover">
           <div class="card-title">${item.title}</div>
@@ -209,112 +238,35 @@
       });
     }
 
-    // 3. Buscador resistente a errores (Doble servidor de respaldo)
-    async function buscarMusica() {
-      activarBoton('btnBuscar');
-      const query = document.getElementById('searchInput').value.trim();
-      if (!query) return;
-
-      document.getElementById('viewInicio').style.display = 'none';
-      document.getElementById('viewDynamic').style.display = 'block';
-      document.getElementById('dynamicTitle').innerText = `Resultados para "${query}"`;
-
-      const grid = document.getElementById('dynamicGrid');
-      grid.innerHTML = '<p style="color:#aaa;">Buscando en la base de datos...</p>';
-
-      try {
-        // Intento 1: API de Audius
-        const res = await fetch(`${API_AUDIUS}/tracks/search?query=${encodeURIComponent(query)}&app_name=${APP_NAME}`);
-        const data = await res.json();
-        
-        if (data.data && data.data.length > 0) {
-          mostrarResultadosAudius(data.data);
-          return;
-        }
-        throw new Error("Sin resultados en Audius");
-      } catch (err) {
-        // Intento 2: Respaldo con iTunes API
-        buscarEnItunes(query);
-      }
-    }
-
-    function mostrarResultadosAudius(lista) {
-      const grid = document.getElementById('dynamicGrid');
-      grid.innerHTML = '';
-      lista.slice(0, 12).forEach(track => {
-        const cover = track.artwork ? track.artwork['150x150'] : 'https://via.placeholder.com/150/222/ffffff?text=Track';
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.onclick = () => reproducir(track.id, track.title, track.user.name, cover);
-        card.innerHTML = `
-          <img src="${cover}" alt="Cover">
-          <div class="card-title">${track.title}</div>
-          <div class="card-sub">${track.user.name}</div>
-        `;
-        grid.appendChild(card);
-      });
-    }
-
-    async function buscarEnItunes(query) {
-      const grid = document.getElementById('dynamicGrid');
-      try {
-        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=12`);
-        const data = await res.json();
-        grid.innerHTML = '';
-
-        if (!data.results || data.results.length === 0) {
-          grid.innerHTML = '<p style="color:#aaa;">No se encontraron resultados.</p>';
-          return;
-        }
-
-        data.results.forEach(track => {
-          const cover = track.artworkUrl100.replace('100x100bb', '300x300bb');
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.onclick = () => reproducirDirecto(track.previewUrl, track.trackName, track.artistName, cover, track.trackId);
-          card.innerHTML = `
-            <img src="${cover}" alt="Cover">
-            <div class="card-title">${track.trackName}</div>
-            <div class="card-sub">${track.artistName}</div>
-          `;
-          grid.appendChild(card);
-        });
-      } catch (e) {
-        grid.innerHTML = '<p style="color:#e74c3c;">Error de conexión. Revisa tu conexión a internet.</p>';
-      }
-    }
-
-    // Reproducción y Guardado en Biblioteca
-    function reproducir(trackId, title, artist, cover, guardar = true) {
+    /* 4. Sistema de Reproducción y Guardado */
+    function reproducir(url, title, artist, cover, id, guardar = true) {
       document.getElementById('nowTitle').innerText = title;
       document.getElementById('nowArtist').innerText = artist;
-      document.getElementById('playerCover').src = cover;
-
-      const player = document.getElementById('audioPlayer');
-      player.src = `${API_AUDIUS}/tracks/${trackId}/stream?app_name=${APP_NAME}`;
-      player.play();
-
-      if (guardar) guardarEnBiblioteca(trackId, title, artist, cover);
-    }
-
-    function reproducirDirecto(url, title, artist, cover, id) {
-      document.getElementById('nowTitle').innerText = title;
-      document.getElementById('nowArtist').innerText = artist;
-      document.getElementById('playerCover').src = cover;
+      
+      const coverBox = document.getElementById('coverBox');
+      coverBox.innerHTML = `<img src="${cover}" style="width:100%; height:100%; border-radius:6px; object-fit:cover;">`;
 
       const player = document.getElementById('audioPlayer');
       player.src = url;
       player.play();
 
-      guardarEnBiblioteca(id, title, artist, cover);
+      if (guardar) guardarEnBiblioteca(id, title, artist, cover, url);
     }
 
-    function guardarEnBiblioteca(id, title, artist, cover) {
-      let playlist = JSON.parse(localStorage.getItem('biblioteca_carlosv8') || '[]');
+    function guardarEnBiblioteca(id, title, artist, cover, url) {
+      let playlist = JSON.parse(localStorage.getItem('carlosv8_favs') || '[]');
       if (!playlist.some(item => item.id === id)) {
-        playlist.unshift({ id, title, artist, cover });
-        localStorage.setItem('biblioteca_carlosv8', JSON.stringify(playlist.slice(0, 20)));
+        playlist.unshift({ id, title, artist, cover, url });
+        localStorage.setItem('carlosv8_favs', JSON.stringify(playlist.slice(0, 25)));
       }
+    }
+
+    /* Función Auxiliar para JSONP */
+    function hacerPeticionJSONP(url) {
+      if (scriptTag) scriptTag.remove();
+      scriptTag = document.createElement('script');
+      scriptTag.src = url;
+      document.body.appendChild(scriptTag);
     }
   </script>
 </body>
