@@ -3,234 +3,136 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CarlosV8 - Music Player (100% Canciones Completas)</title>
+  <title>CarlosV8 - Reproductor de Música Completa</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #121212; color: #ffffff; min-height: 100vh; padding-bottom: 120px; display: flex; flex-direction: column; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: #121212; color: #ffffff; padding-bottom: 110px; min-height: 100vh; }
 
-    .app-container { display: flex; flex: 1; min-height: calc(100vh - 110px); }
+    header { background: #000; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #282828; }
+    .logo { font-size: 20px; font-weight: 800; color: #1DB954; }
 
-    /* Menú Lateral */
-    .sidebar {
-      width: 240px; background-color: #000000; padding: 24px 16px;
-      display: flex; flex-direction: column; gap: 12px; flex-shrink: 0;
-    }
-    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding: 0 8px; cursor: pointer; }
-    .logo-v8 {
-      width: 38px; height: 38px; background: #1DB954; color: #000;
-      border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      font-weight: 900; font-size: 16px;
-    }
-    .brand-title { color: #ffffff; font-size: 20px; font-weight: 800; }
+    .search-box { display: flex; gap: 10px; padding: 20px; max-width: 600px; margin: 0 auto; }
+    .search-box input { flex: 1; padding: 12px 18px; border-radius: 25px; border: 1px solid #333; background: #222; color: #fff; font-size: 14px; outline: none; }
+    .search-box input:focus { border-color: #1DB954; }
+    .search-box button { background: #1DB954; color: #000; border: none; padding: 12px 24px; border-radius: 25px; font-weight: bold; cursor: pointer; }
 
-    .nav-btn {
-      background: transparent; border: none; color: #b3b3b3;
-      padding: 12px 16px; border-radius: 8px; font-weight: 700; font-size: 14px;
-      text-align: left; cursor: pointer; transition: all 0.2s ease; width: 100%;
-    }
-    .nav-btn:hover { color: #ffffff; background-color: #1f1f1f; }
-    .nav-btn.active { color: #ffffff; background-color: #282828; }
+    .container { padding: 0 20px; max-width: 1000px; margin: 0 auto; }
+    .title { font-size: 20px; font-weight: 800; margin: 15px 0; }
 
-    /* Panel Principal */
-    .main-content { flex: 1; padding: 24px 32px; background: linear-gradient(180deg, #1e1e1e 0%, #121212 300px); overflow-y: auto; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
+    .card { background: #181818; padding: 14px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+    .card:hover { background: #282828; transform: translateY(-3px); }
+    .card img { width: 100%; aspect-ratio: 1; border-radius: 6px; object-fit: cover; background: #222; }
+    .card-title { font-size: 14px; font-weight: bold; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-sub { font-size: 12px; color: #aaa; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    .search-bar { display: flex; gap: 12px; max-width: 500px; margin-bottom: 28px; }
-    .search-input {
-      flex: 1; padding: 12px 20px; border-radius: 50px; border: 1px solid #333;
-      background: #242424; color: #fff; font-size: 14px; outline: none;
-    }
-    .search-input:focus { border-color: #1DB954; }
-    .search-btn {
-      background: #1DB954; color: #000; border: none; padding: 12px 24px;
-      border-radius: 50px; font-weight: bold; cursor: pointer;
-    }
-
-    .section-title { font-size: 22px; font-weight: 800; margin: 24px 0 16px 0; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }
-
-    .card {
-      background: #181818; padding: 16px; border-radius: 8px; cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.2s ease;
-    }
-    .card:hover { background: #282828; transform: translateY(-4px); }
-    .card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; margin-bottom: 12px; }
-    .card-title { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .card-sub { font-size: 12px; color: #a7a7a7; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    /* Reproductor Inferior */
     .player-bar {
-      position: fixed; bottom: 0; left: 0; width: 100%; height: 110px;
-      background-color: #000000; border-top: 1px solid #282828;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 24px; z-index: 999;
+      position: fixed; bottom: 0; left: 0; width: 100%; height: 90px;
+      background: #000; border-top: 1px solid #282828; display: flex;
+      align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100;
     }
-    .track-info { display: flex; align-items: center; gap: 14px; width: 30%; }
-    .track-info img { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; background: #282828; }
+    .track-info { display: flex; align-items: center; gap: 12px; width: 40%; }
+    .track-info img { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; background: #222; }
+    .track-text h4 { font-size: 14px; font-weight: bold; }
+    .track-text p { font-size: 12px; color: #aaa; }
 
-    .player-controls { width: 65%; display: flex; align-items: center; justify-content: flex-end; gap: 16px; }
-    
-    /* Contenedores para Audio y YouTube */
-    #audioPlayer { width: 100%; max-width: 400px; height: 40px; display: none; }
-    #ytContainer { width: 320px; height: 90px; border-radius: 8px; overflow: hidden; display: none; }
-    #ytContainer iframe { width: 100%; height: 100%; border: 0; }
-
-    .status-msg { color: #a7a7a7; font-size: 14px; padding: 20px 0; }
+    audio { width: 50%; max-width: 400px; outline: none; }
   </style>
 </head>
 <body>
 
-  <div class="app-container">
-    <aside class="sidebar">
-      <div class="brand" onclick="irA('inicio')">
-        <div class="logo-v8">V8</div>
-        <div class="brand-title">CarlosV8</div>
-      </div>
-      <button class="nav-btn active" id="btn-inicio" onclick="irA('inicio')">🏠 Inicio</button>
-      <button class="nav-btn" id="btn-buscar" onclick="irA('buscar')">🔍 Buscar (Full MP3)</button>
-    </aside>
+  <header>
+    <div class="logo">🎵 CarlosV8 Player</div>
+  </header>
 
-    <main class="main-content">
-      <section id="sec-inicio">
-        <h2 class="section-title">🔥 Canciones Completas (YouTube Directo)</h2>
-        <div class="grid" id="top-songs-grid"></div>
-      </section>
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Escribe el nombre de un artista o canción..." onkeypress="if(event.key==='Enter') buscarMusica()">
+    <button onclick="buscarMusica()">Buscar</button>
+  </div>
 
-      <section id="sec-buscar" style="display: none;">
-        <div class="search-bar">
-          <input type="text" id="searchInput" class="search-input" placeholder="Buscar canción completa..." onkeypress="if(event.key==='Enter') buscarAudius()">
-          <button class="search-btn" onclick="buscarAudius()">Buscar</button>
-        </div>
-        <h2 class="section-title" id="search-title">Música en streaming completo</h2>
-        <div class="grid" id="search-grid">
-          <p class="status-msg">Busca cualquier tema para escucharlo completo de principio a fin.</p>
-        </div>
-      </section>
-    </main>
+  <div class="container">
+    <div class="title" id="sectionTitle">🔥 Canciones recomendadas (Completas)</div>
+    <div class="grid" id="songsGrid">
+      <p style="color:#aaa;">Cargando música...</p>
+    </div>
   </div>
 
   <footer class="player-bar">
     <div class="track-info">
-      <img id="playerCover" src="" alt="">
-      <div>
-        <h4 id="nowTitle">Selecciona una canción</h4>
-        <p id="nowArtist" style="font-size:12px; color:#a7a7a7;">CarlosV8 Player</p>
+      <img id="playerCover" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%23222'/></svg>">
+      <div class="track-text">
+        <h4 id="playerTitle">Selecciona una canción</h4>
+        <p id="playerArtist">CarlosV8 Player</p>
       </div>
     </div>
-    
-    <div class="player-controls">
-      <!-- Reproductor HTML5 para MP3 completos de Audius -->
-      <audio id="audioPlayer" controls autoplay></audio>
-      <!-- Reproductor YouTube Embed para IDs directos -->
-      <div id="ytContainer">
-        <iframe id="ytFrame" allow="autoplay"></iframe>
-      </div>
-    </div>
+    <audio id="audioElement" controls autoplay></audio>
   </footer>
 
   <script>
-    // Canciones completas verificadas con IDs directos de YouTube
-    const cancionesCompletas = [
-      { id: '1', title: 'Columbia', artist: 'Quevedo', ytId: 'm49a2gA2LNo', cover: 'https://i.ytimg.com/vi/m49a2gA2LNo/hqdefault.jpg' },
-      { id: '2', title: 'LALA', artist: 'Myke Towers', ytId: 'g202Bv-N4qA', cover: 'https://i.ytimg.com/vi/g202Bv-N4qA/hqdefault.jpg' },
-      { id: '3', title: 'Classy 101', artist: 'Feid & Young Miko', ytId: 'sJ92c_Z6x3s', cover: 'https://i.ytimg.com/vi/sJ92c_Z6x3s/hqdefault.jpg' },
-      { id: '4', title: 'LUNA', artist: 'Feid', ytId: 'sL2B734a2e0', cover: 'https://i.ytimg.com/vi/sL2B734a2e0/hqdefault.jpg' },
-      { id: '5', title: 'MONACO', artist: 'Bad Bunny', ytId: 'f0X90C8eA4M', cover: 'https://i.ytimg.com/vi/f0X90C8eA4M/hqdefault.jpg' }
-    ];
+    const appName = "CarlosV8PlayerApp";
 
-    document.addEventListener('DOMContentLoaded', () => cargarInicio());
+    // Al cargar la página, busca canciones populares en la API
+    document.addEventListener('DOMContentLoaded', () => {
+      cargarCancionesTop();
+    });
 
-    function irA(sec) {
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(`btn-${sec}`).classList.add('active');
-      document.getElementById('sec-inicio').style.display = (sec === 'inicio') ? 'block' : 'none';
-      document.getElementById('sec-buscar').style.display = (sec === 'buscar') ? 'block' : 'none';
+    async function cargarCancionesTop() {
+      try {
+        const res = await fetch(`https://discoveryprovider.audius.co/v1/tracks/trending?app_name=${appName}&limit=12`);
+        const data = await res.json();
+        mostrarResultados(data.data);
+      } catch (err) {
+        document.getElementById('songsGrid').innerHTML = '<p style="color:#ff5555;">Error al cargar las canciones. Comprueba tu conexión a Internet.</p>';
+      }
     }
 
-    function cargarInicio() {
-      const grid = document.getElementById('top-songs-grid');
+    async function buscarMusica() {
+      const query = document.getElementById('searchInput').value.trim();
+      if (!query) return;
+
+      document.getElementById('sectionTitle').innerText = `Resultados para "${query}"`;
+      document.getElementById('songsGrid').innerHTML = '<p style="color:#aaa;">Buscando canciones...</p>';
+
+      try {
+        const res = await fetch(`https://discoveryprovider.audius.co/v1/tracks/search?query=${encodeURIComponent(query)}&app_name=${appName}`);
+        const data = await res.json();
+        mostrarResultados(data.data);
+      } catch (err) {
+        document.getElementById('songsGrid').innerHTML = '<p style="color:#ff5555;">Error en la búsqueda.</p>';
+      }
+    }
+
+    function mostrarResultados(tracks) {
+      const grid = document.getElementById('songsGrid');
       grid.innerHTML = '';
-      cancionesCompletas.forEach(song => {
+
+      if (!tracks || tracks.length === 0) {
+        grid.innerHTML = '<p style="color:#aaa;">No se encontraron canciones.</p>';
+        return;
+      }
+
+      tracks.forEach(track => {
+        const streamUrl = `https://discoveryprovider.audius.co/v1/tracks/${track.id}/stream?app_name=${appName}`;
+        const coverUrl = track.artwork ? track.artwork['150x150'] : 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100%" height="100%" fill="%23333"/></svg>';
+        
         const card = document.createElement('div');
         card.className = 'card';
-        card.onclick = () => reproducirYouTube(song.ytId, song.title, song.artist, song.cover);
+        card.onclick = () => reproducirCancion(streamUrl, track.title, track.user.name, coverUrl);
         card.innerHTML = `
-          <img src="${song.cover}">
-          <div class="card-title">${song.title}</div>
-          <div class="card-sub">${song.artist}</div>
+          <img src="${coverUrl}">
+          <div class="card-title">${track.title}</div>
+          <div class="card-sub">${track.user.name}</div>
         `;
         grid.appendChild(card);
       });
     }
 
-    // Reproduce canciones completas vía YouTube Embed
-    function reproducirYouTube(ytId, title, artist, cover) {
-      document.getElementById('nowTitle').innerText = title;
-      document.getElementById('nowArtist').innerText = artist;
+    function reproducirCancion(streamUrl, title, artist, cover) {
+      document.getElementById('playerTitle').innerText = title;
+      document.getElementById('playerArtist').innerText = artist;
       document.getElementById('playerCover').src = cover;
 
-      const audio = document.getElementById('audioPlayer');
-      const ytContainer = document.getElementById('ytContainer');
-      const ytFrame = document.getElementById('ytFrame');
-
-      audio.pause();
-      audio.style.display = 'none';
-
-      ytContainer.style.display = 'block';
-      ytFrame.src = `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&enablejsapi=1`;
-    }
-
-    // Busca canciones completas MP3 de la API de Audius
-    async function buscarAudius() {
-      const query = document.getElementById('searchInput').value.trim();
-      if (!query) return;
-
-      const grid = document.getElementById('search-grid');
-      grid.innerHTML = '<p class="status-msg">Cargando canciones completas...</p>';
-
-      try {
-        const res = await fetch(`https://discoveryprovider.audius.co/v1/tracks/search?query=${encodeURIComponent(query)}&app_name=CarlosV8Player`);
-        const data = await res.json();
-
-        grid.innerHTML = '';
-        if (!data.data || data.data.length === 0) {
-          grid.innerHTML = '<p class="status-msg">No se encontraron resultados.</p>';
-          return;
-        }
-
-        data.data.forEach(track => {
-          const streamUrl = `https://discoveryprovider.audius.co/v1/tracks/${track.id}/stream?app_name=CarlosV8Player`;
-          const coverUrl = track.artwork ? track.artwork['150x150'] : 'https://via.placeholder.com/150';
-
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.onclick = () => reproducirAudioMP3(streamUrl, track.title, track.user.name, coverUrl);
-          card.innerHTML = `
-            <img src="${coverUrl}">
-            <div class="card-title">${track.title}</div>
-            <div class="card-sub">${track.user.name}</div>
-          `;
-          grid.appendChild(card);
-        });
-
-      } catch (err) {
-        grid.innerHTML = '<p class="status-msg" style="color:#ff5555;">Error al conectar con el servidor.</p>';
-      }
-    }
-
-    // Reproduce archivos de audio MP3 completos
-    function reproducirAudioMP3(streamUrl, title, artist, cover) {
-      document.getElementById('nowTitle').innerText = title;
-      document.getElementById('nowArtist').innerText = artist;
-      document.getElementById('playerCover').src = cover;
-
-      const ytContainer = document.getElementById('ytContainer');
-      const ytFrame = document.getElementById('ytFrame');
-      const audio = document.getElementById('audioPlayer');
-
-      ytFrame.src = '';
-      ytContainer.style.display = 'none';
-
-      audio.style.display = 'block';
+      const audio = document.getElementById('audioElement');
       audio.src = streamUrl;
       audio.play();
     }
