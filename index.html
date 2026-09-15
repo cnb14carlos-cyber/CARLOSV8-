@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
   <title>CarlosV8 - Music Player</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
@@ -22,7 +23,20 @@
 
     /* Contenido Principal */
     .main-content { flex: 1; padding: 30px; background: #121212; }
-    .section-title { font-size: 22px; font-weight: 800; margin-bottom: 20px; color: #ffffff; }
+    
+    .search-container {
+      background: #181818; padding: 20px; border-radius: 12px; margin-bottom: 24px; border: 1px solid #282828;
+    }
+    .search-box { display: flex; gap: 10px; margin-top: 10px; }
+    .search-box input {
+      flex: 1; padding: 12px 18px; border-radius: 25px; border: 1px solid #333; background: #222; color: #fff; font-size: 15px; outline: none;
+    }
+    .search-box button {
+      background: #1DB954; border: none; padding: 12px 24px; border-radius: 25px; font-weight: bold; color: #000; cursor: pointer; transition: 0.2s;
+    }
+    .search-box button:hover { background: #1ed760; }
+
+    .section-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; color: #1DB954; }
 
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 18px; }
     .card { background: #181818; padding: 14px; border-radius: 10px; cursor: pointer; transition: background 0.2s, transform 0.2s; }
@@ -48,8 +62,8 @@
     .track-title { font-weight: bold; font-size: 14px; color: #ffffff; }
     .track-artist { color: #aaaaaa; font-size: 12px; margin-top: 2px; }
 
-    .yt-container { width: 260px; height: 70px; border-radius: 8px; overflow: hidden; background: #000; }
-    iframe { width: 100%; height: 100%; border: none; }
+    .player-controls { display: flex; align-items: center; gap: 15px; }
+    audio { outline: none; height: 40px; width: 320px; }
   </style>
 </head>
 <body>
@@ -61,8 +75,16 @@
     </aside>
 
     <main class="main-content">
-      <h2 class="section-title">🔥 Canciones Completas (YouTube Directo)</h2>
-      <div class="grid" id="gridCanciones"></div>
+      <div class="search-container">
+        <h2>Buscador Directo (Sin Anuncios)</h2>
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="Escribe canción o artista..." onkeypress="if(event.key==='Enter') buscarVideo()">
+          <button onclick="buscarVideo()">Buscar</button>
+        </div>
+      </div>
+
+      <h2 class="section-title" id="tituloResultados">Resultados</h2>
+      <div class="grid" id="gridResultados"></div>
     </main>
   </div>
 
@@ -74,48 +96,92 @@
         <div class="track-artist" id="artist">CarlosV8 Player</div>
       </div>
     </div>
-    <div class="yt-container">
-      <iframe id="ytPlayer" allow="autoplay; encrypted-media"></iframe>
+    <div class="player-controls">
+      <audio id="audioPlayer" controls autoplay></audio>
     </div>
   </footer>
 
   <script>
-    const canciones = [
-      { title: 'Columbia', artist: 'Quevedo', ytId: 'm49a2gA2LNo', cover: 'https://i.ytimg.com/vi/m49a2gA2LNo/hqdefault.jpg' },
-      { title: 'LALA', artist: 'Myke Towers', ytId: 'g202Bv-N4qA', cover: 'https://i.ytimg.com/vi/g202Bv-N4qA/hqdefault.jpg' },
-      { title: 'Classy 101', artist: 'Feid & Young Miko', ytId: 'sJ92c_Z6x3s', cover: 'https://i.ytimg.com/vi/sJ92c_Z6x3s/hqdefault.jpg' },
-      { title: 'LUNA', artist: 'Feid', ytId: 'sL2B734a2e0', cover: 'https://i.ytimg.com/vi/sL2B734a2e0/hqdefault.jpg' },
-      { title: 'MONACO', artist: 'Bad Bunny', ytId: 'f0X90C8eA4M', cover: 'https://i.ytimg.com/vi/f0X90C8eA4M/hqdefault.jpg' }
+    // Lista de servidores para probar automáticamente si uno falla
+    const API_SERVERS = [
+      'https://api.piped.privacydev.net',
+      'https://pipedapi.adminforge.de',
+      'https://pipedapi.drgns.space',
+      'https://pipedapi.kavin.rocks'
     ];
 
-    function cargarGrid() {
-      const grid = document.getElementById('gridCanciones');
-      grid.innerHTML = '';
-      canciones.forEach(s => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.onclick = () => reproducirYouTube(s.ytId, s.title, s.artist, s.cover);
-        card.innerHTML = `
-          <img src="${s.cover}" referrerpolicy="no-referrer">
-          <div class="card-title">${s.title}</div>
-          <div class="card-sub">${s.artist}</div>
-        `;
-        grid.appendChild(card);
-      });
+    async function fetchConRespaldo(endpoint) {
+      for (const server of API_SERVERS) {
+        try {
+          const res = await fetch(`${server}${endpoint}`);
+          if (res.ok) return await res.json();
+        } catch (e) {
+          console.warn(`Falló ${server}, probando siguiente servidor...`);
+        }
+      }
+      throw new Error('Servidores no disponibles');
     }
 
-    function reproducirYouTube(ytId, title, artist, cover) {
+    async function buscarVideo() {
+      const q = document.getElementById('searchInput').value.trim() || 'Bad Bunny MONACO';
+      const grid = document.getElementById('gridResultados');
+      document.getElementById('tituloResultados').innerText = `Resultados para "${q}"`;
+      grid.innerHTML = '<p style="color:#aaa;">Buscando canción...</p>';
+
+      try {
+        const data = await fetchConRespaldo(`/search?q=${encodeURIComponent(q)}&filter=videos`);
+        grid.innerHTML = '';
+
+        if (!data.items || data.items.length === 0) {
+          grid.innerHTML = '<p style="color:#aaa;">No se encontraron resultados.</p>';
+          return;
+        }
+
+        data.items.slice(0, 20).forEach(v => {
+          const videoId = v.url.replace('/watch?v=', '');
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.onclick = () => reproducirSinAnuncios(videoId, v.title, v.uploaderName, v.thumbnail);
+
+          card.innerHTML = `
+            <img src="${v.thumbnail}" referrerpolicy="no-referrer" onerror="this.src='https://via.placeholder.com/150/282828/ffffff?text=V8'">
+            <div class="card-title">${v.title}</div>
+            <div class="card-sub">${v.uploaderName}</div>
+          `;
+          grid.appendChild(card);
+        });
+      } catch (e) {
+        grid.innerHTML = '<p style="color:#ff5555;">Error de red. Intenta pulsar Buscar de nuevo.</p>';
+      }
+    }
+
+    async function reproducirSinAnuncios(ytId, title, artist, cover) {
       document.getElementById('title').innerText = title;
       document.getElementById('artist').innerText = artist;
-      
-      const coverBox = document.getElementById('coverContainer');
-      coverBox.innerHTML = `<img src="${cover}">`;
+      document.getElementById('coverContainer').innerHTML = `<img src="${cover}" referrerpolicy="no-referrer">`;
 
-      // Carga el vídeo directo en el reproductor de YouTube
-      document.getElementById('ytPlayer').src = `https://www.youtube.com/embed/${ytId}?autoplay=1`;
+      const player = document.getElementById('audioPlayer');
+      player.pause();
+
+      try {
+        const data = await fetchConRespaldo(`/streams/${ytId}`);
+        const audioStream = data.audioStreams ? data.audioStreams[0] : null;
+
+        if (audioStream && audioStream.url) {
+          player.src = audioStream.url;
+          player.play();
+        } else {
+          alert('No se pudo obtener el audio de esta canción.');
+        }
+      } catch (e) {
+        console.error('Error al reproducir audio:', e);
+      }
     }
 
-    document.addEventListener('DOMContentLoaded', cargarGrid);
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('searchInput').value = 'Bad Bunny MONACO';
+      buscarVideo();
+    });
   </script>
 </body>
 </html>
