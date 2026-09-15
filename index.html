@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CarlosV8 - Canciones Enteras 100% Operativas</title>
+  <title>CarlosV8 - Reproductor Completo</title>
   <style>
     :root {
       --accent: #8a2be2;
@@ -17,19 +17,21 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body { background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; padding-bottom: 120px; }
+    body { background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; padding-bottom: 140px; }
 
-    .app { display: flex; min-height: calc(100vh - 120px); }
+    .app { display: flex; min-height: calc(100vh - 140px); }
 
     .sidebar { width: 230px; background: var(--bg-sidebar); padding: 20px 16px; border-right: 1px solid var(--border); flex-shrink: 0; }
     .brand { font-size: 22px; font-weight: 800; color: var(--accent); margin-bottom: 16px; }
 
     .content { flex: 1; padding: 24px; overflow-y: auto; }
+    
     .top-bar { display: flex; gap: 12px; margin-bottom: 24px; }
-    .search-input { flex: 1; padding: 14px 18px; border-radius: 25px; border: 1px solid var(--border); background: var(--bg-card); color: #fff; font-size: 15px; outline: none; }
+    .search-input { flex: 1; padding: 14px 18px; border-radius: 25px; border: 1px solid var(--border); background: var(--bg-card); color: #fff; font-size: 14px; outline: none; }
     .btn-main { background: var(--accent); border: none; padding: 14px 24px; border-radius: 25px; font-weight: bold; color: #fff; cursor: pointer; }
 
     .section-title { font-size: 20px; font-weight: 800; margin: 20px 0 14px 0; }
+    
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
     .card { background: var(--bg-card); padding: 12px; border-radius: 10px; cursor: pointer; transition: 0.15s; border: 1px solid transparent; }
     .card:hover { border-color: var(--accent); transform: translateY(-3px); }
@@ -37,15 +39,16 @@
     .card-title { font-weight: bold; margin-top: 10px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .card-sub { color: var(--text-sub); font-size: 11px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* Barra de Reproducción Inferior */
-    .player-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 110px; background: var(--bg-player); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 10px 24px; z-index: 100; gap: 20px; }
-    .track-info { display: flex; align-items: center; gap: 12px; min-width: 220px; }
+    /* Reproductor Inferior */
+    .player-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 130px; background: var(--bg-player); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 10px 24px; z-index: 100; gap: 20px; }
+    .track-info { display: flex; align-items: center; gap: 12px; width: 220px; flex-shrink: 0; }
     .cover-box { width: 55px; height: 55px; background: #222; border-radius: 6px; overflow: hidden; flex-shrink: 0; }
     .cover-box img { width: 100%; height: 100%; object-fit: cover; }
     .track-title { font-weight: bold; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .track-artist { color: var(--text-sub); font-size: 12px; margin-top: 2px; }
 
-    audio { width: 100%; max-width: 500px; outline: none; }
+    .yt-frame-container { flex: 1; max-width: 450px; height: 100px; border-radius: 8px; overflow: hidden; background: #000; border: 1px solid var(--border); }
+    .yt-frame-container iframe { width: 100%; height: 100%; border: none; }
   </style>
 </head>
 <body>
@@ -53,100 +56,91 @@
   <div class="app">
     <aside class="sidebar">
       <div class="brand">🎵 CarlosV8</div>
-      <p style="font-size: 12px; color: var(--text-sub);">Canciones completas sin límite de tiempo</p>
+      <p style="font-size: 12px; color: var(--text-sub);">Canciones 100% Completas</p>
     </aside>
 
     <main class="content">
       <div class="top-bar">
-        <input type="text" id="searchInput" class="search-input" placeholder="Buscar canción completa (ej: rock, pop, electro...)" onkeypress="if(event.key==='Enter') buscarJamendo()">
-        <button class="btn-main" onclick="buscarJamendo()">Buscar MP3 Real</button>
+        <input type="text" id="linkInput" class="search-input" placeholder="Pega el enlace o ID de YouTube para añadir cualquier canción entera...">
+        <button class="btn-main" onclick="reproducirPorLink()">Reproducir Link</button>
       </div>
 
-      <h2 class="section-title" id="gridTitle">🔥 Canciones Completas Recomendadas</h2>
+      <h2 class="section-title">🔥 Éxitos Populares (Sin límites)</h2>
       <div class="grid" id="mainGrid"></div>
     </main>
   </div>
 
-  <!-- Reproductor Nativo de Canción Completa -->
   <footer class="player-bar">
     <div class="track-info">
       <div class="cover-box" id="pCover"><div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--accent);">🎵</div></div>
       <div style="overflow:hidden;">
         <div class="track-title" id="pTitle">Selecciona una canción</div>
-        <div class="track-artist" id="pArtist">Canción Completa (MP3)</div>
+        <div class="track-artist" id="pArtist">Audio Completo</div>
       </div>
     </div>
 
-    <!-- Contenedor del audio nativo -->
-    <audio id="audioPlayer" controls autoplay></audio>
+    <div class="yt-frame-container" id="ytBox">
+      <div style="color:#aaa; font-size:12px; display:flex; align-items:center; justify-content:center; height:100%;">
+        Haz clic en una canción para reproducirla entera
+      </div>
+    </div>
   </footer>
 
   <script>
-    const CLIENT_ID = '56d30c41'; // API Key pública de Jamendo para stream directo de audio completo
+    // Lista de canciones con IDs DIRECTOS de YouTube (esto evita que falle la reproducción)
+    const canciones = [
+      { title: ' Solitud', artist: 'LALION', ytId: 'Qv197uG32fA', cover: 'https://img.youtube.com/vi/Qv197uG32fA/hqdefault.jpg' },
+      { title: 'MONACO', artist: 'Bad Bunny', ytId: 'V9PVRfjEBTI', cover: 'https://img.youtube.com/vi/V9PVRfjEBTI/hqdefault.jpg' },
+      { title: 'Columbia', artist: 'Quevedo', ytId: 'QeI2XmKTh0M', cover: 'https://img.youtube.com/vi/QeI2XmKTh0M/hqdefault.jpg' },
+      { title: 'LALA', artist: 'Myke Towers', ytId: 'gA_33S3e_Xg', cover: 'https://img.youtube.com/vi/gA_33S3e_Xg/hqdefault.jpg' },
+      { title: 'LUNA', artist: 'Feid & ATL Jacob', ytId: '6T3oR1JzvhU', cover: 'https://img.youtube.com/vi/6T3oR1JzvhU/hqdefault.jpg' }
+    ];
 
-    // Cargar canciones completas destacadas al iniciar
-    async function cargarDestacadas() {
-      const url = `https://api.jamendo.com/v3.0/tracks/?client_id=${CLIENT_ID}&format=jsonpretty&limit=12&order=popularity_week&audioformat=mp32`;
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-        renderGrid(data.results);
-      } catch (err) {
-        console.error("Error al cargar música:", err);
-      }
-    }
-
-    // Buscar cualquier tema entero en la API
-    async function buscarJamendo() {
-      const q = document.getElementById('searchInput').value.trim();
-      if (!q) return;
-
-      document.getElementById('gridTitle').innerText = `Resultados para: "${q}"`;
-      const url = `https://api.jamendo.com/v3.0/tracks/?client_id=${CLIENT_ID}&format=jsonpretty&limit=18&namesearch=${encodeURIComponent(q)}&audioformat=mp32`;
-      
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-        renderGrid(data.results);
-      } catch (err) {
-        console.error("Error en la búsqueda:", err);
-      }
-    }
-
-    function renderGrid(tracks) {
+    function cargarCanciones() {
       const grid = document.getElementById('mainGrid');
       grid.innerHTML = '';
 
-      if (!tracks || tracks.length === 0) {
-        grid.innerHTML = '<p style="color:var(--text-sub);">No se encontraron canciones completas.</p>';
-        return;
-      }
-
-      tracks.forEach(track => {
+      canciones.forEach(s => {
         const card = document.createElement('div');
         card.className = 'card';
-        card.onclick = () => reproducirCancionEntera(track);
+        card.onclick = () => reproducirID(s.title, s.artist, s.ytId, s.cover);
 
         card.innerHTML = `
-          <img src="${track.album_image || track.image || 'https://via.placeholder.com/150'}">
-          <div class="card-title">${track.name}</div>
-          <div class="card-sub">${track.artist_name}</div>
+          <img src="${s.cover}">
+          <div class="card-title">${s.title}</div>
+          <div class="card-sub">${s.artist}</div>
         `;
         grid.appendChild(card);
       });
     }
 
-    function reproducirCancionEntera(track) {
-      document.getElementById('pTitle').innerText = track.name;
-      document.getElementById('pArtist').innerText = track.artist_name;
-      document.getElementById('pCover').innerHTML = `<img src="${track.album_image || track.image}">`;
+    function reproducirID(title, artist, ytId, cover) {
+      document.getElementById('pTitle').innerText = title;
+      document.getElementById('pArtist').innerText = artist;
+      document.getElementById('pCover').innerHTML = `<img src="${cover}">`;
 
-      const audio = document.getElementById('audioPlayer');
-      audio.src = track.audio; // MP3 con la canción completa de principio a fin
-      audio.play();
+      // Carga directa del ID sin pasar por búsquedas bloqueadas
+      const iframeUrl = `https://www.youtube.com/embed/${ytId}?autoplay=1&enablejsapi=1`;
+      document.getElementById('ytBox').innerHTML = `<iframe src="${iframeUrl}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
     }
 
-    document.addEventListener('DOMContentLoaded', cargarDestacadas);
+    function reproducirPorLink() {
+      const val = document.getElementById('linkInput').value.trim();
+      if (!val) return;
+
+      let id = val;
+      // Extrae el ID si pegan el enlace entero de YouTube
+      if (val.includes('v=')) {
+        id = val.split('v=')[1].split('&')[0];
+      } else if (val.includes('youtu.be/')) {
+        id = val.split('youtu.be/')[1].split('?')[0];
+      }
+
+      const img = `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+      reproducirID('Canción Personalizada', 'YouTube', id, img);
+    }
+
+    document.addEventListener('DOMContentLoaded', cargarCanciones);
   </script>
 </body>
 </html>
