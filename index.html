@@ -26,18 +26,18 @@
     .main-content { flex: 1; padding: 24px; background: #121212; overflow-y: auto; }
     
     /* Buscador */
-    .search-box { display: flex; gap: 10px; margin-bottom: 24px; }
+    .search-box { display: flex; gap: 10px; margin-bottom: 24px; background: #181818; padding: 16px; border-radius: 12px; border: 1px solid #282828; }
     .search-box input {
-      flex: 1; padding: 12px 18px; border-radius: 25px; border: 1px solid #333; background: #1f1f1f; color: #fff; font-size: 15px; outline: none;
+      flex: 1; padding: 12px 18px; border-radius: 25px; border: 1px solid #333; background: #222; color: #fff; font-size: 15px; outline: none;
     }
     .search-box button {
       background: #1DB954; border: none; padding: 12px 24px; border-radius: 25px; font-weight: bold; color: #000; cursor: pointer; transition: 0.2s;
     }
     .search-box button:hover { background: #1ed760; }
 
-    .section-title { font-size: 20px; font-weight: 800; margin: 24px 0 14px 0; color: #ffffff; display: flex; justify-content: space-between; align-items: center; }
+    .section-title { font-size: 20px; font-weight: 800; margin: 20px 0 14px 0; color: #ffffff; }
 
-    /* Grilla de Canciones y Artistas */
+    /* Grillas */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
     .card { background: #181818; padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; position: relative; }
     .card:hover { background: #282828; transform: translateY(-4px); }
@@ -45,13 +45,12 @@
     .card-title { font-weight: bold; margin-top: 8px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
     .card-sub { color: #aaa; font-size: 11px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     
-    .add-playlist-btn {
-      position: absolute; top: 18px; right: 18px; background: rgba(0,0,0,0.7); border: none; color: #1DB954;
+    .add-btn {
+      position: absolute; top: 16px; right: 16px; background: rgba(0,0,0,0.7); border: none; color: #1DB954;
       font-size: 18px; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
     }
-    .add-playlist-btn:hover { background: #1DB954; color: #000; }
+    .add-btn:hover { background: #1DB954; color: #000; }
 
-    /* Artistas Circulares */
     .artist-card img { border-radius: 50% !important; }
 
     /* Reproductor Inferior */
@@ -83,18 +82,16 @@
     </aside>
 
     <main class="main-content">
-      <!-- Buscador Global -->
       <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Buscar canción o artista..." onkeypress="if(event.key==='Enter') buscar()">
+        <input type="text" id="searchInput" placeholder="Escribe cualquier canción o artista..." onkeypress="if(event.key==='Enter') buscar()">
         <button onclick="buscar()">Buscar</button>
       </div>
 
-      <!-- Vista: Inicio / Canciones / Resultados -->
-      <div id="vistaPrincipal">
-        <h2 class="section-title" id="tituloSeccion">🔥 Canciones Tops</h2>
+      <div id="seccionContenido">
+        <h2 class="section-title" id="tituloPrincipal">🔥 Canciones Tops</h2>
         <div class="grid" id="gridCanciones"></div>
 
-        <h2 class="section-title">🎤 Artistas Tops</h2>
+        <h2 class="section-title" id="tituloArtistas">🎤 Artistas Tops</h2>
         <div class="grid" id="gridArtistas"></div>
       </div>
     </main>
@@ -116,11 +113,11 @@
   </footer>
 
   <script>
-    // Servidores de audio directo sin bloqueo de YouTube
-    const API_SERVERS = [
-      'https://pipedapi.kavin.rocks',
-      'https://api.piped.privacydev.net',
-      'https://pipedapi.adminforge.de'
+    // Servidores con soporte CORS habilitado para GitHub Pages
+    const ENDPOINTS = [
+      { search: 'https://invidious.nerdvpn.de/api/v1/search?q=', stream: 'https://invidious.nerdvpn.de/api/v1/videos/' },
+      { search: 'https://vid.puffyan.us/api/v1/search?q=', stream: 'https://vid.puffyan.us/api/v1/videos/' },
+      { search: 'https://inv.nadim.computer/api/v1/search?q=', stream: 'https://inv.nadim.computer/api/v1/videos/' }
     ];
 
     const topCancionesData = [
@@ -155,7 +152,7 @@
         card.onclick = () => reproducir(s.id, s.title, s.artist, s.cover);
 
         card.innerHTML = `
-          <button class="add-playlist-btn" title="Añadir a mi lista" onclick="event.stopPropagation(); agregarAPlaylist('${s.id}', '${s.title.replace(/'/g, "\\'")}', '${s.artist.replace(/'/g, "\\'")}', '${s.cover}')">＋</button>
+          <button class="add-btn" title="Añadir a mi lista" onclick="event.stopPropagation(); agregarAPlaylist('${s.id}', '${s.title.replace(/'/g, "\\'")}', '${s.artist.replace(/'/g, "\\'")}', '${s.cover}')">＋</button>
           <img src="${s.cover}" referrerpolicy="no-referrer">
           <div class="card-title">${s.title}</div>
           <div class="card-sub">${s.artist}</div>
@@ -188,9 +185,48 @@
         miPlaylist.push({ id, title, artist, cover });
         localStorage.setItem('carlosv8_playlist', JSON.stringify(miPlaylist));
         actualizarContador();
-        alert(`"${title}" añadida a Mi Playlist`);
+        alert(`"${title}" guardada en Mi Playlist`);
       } else {
         alert('Esta canción ya está en tu lista.');
+      }
+    }
+
+    async function buscar() {
+      const q = document.getElementById('searchInput').value.trim();
+      if (!q) return;
+
+      document.getElementById('tituloPrincipal').innerText = `Resultados para "${q}"`;
+      document.getElementById('tituloArtistas').style.display = 'none';
+      document.getElementById('gridArtistas').innerHTML = '';
+      const grid = document.getElementById('gridCanciones');
+      grid.innerHTML = '<p style="color:#aaa;">Buscando música libre de anuncios...</p>';
+
+      let encontrado = false;
+
+      for (const node of ENDPOINTS) {
+        try {
+          const res = await fetch(`${node.search}${encodeURIComponent(q)}&type=video`);
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data) && data.length > 0) {
+              const resultados = data.slice(0, 18).map(v => ({
+                id: v.videoId,
+                title: v.title,
+                artist: v.author,
+                cover: v.videoThumbnails ? v.videoThumbnails[0].url : `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`
+              }));
+              renderizarCanciones(resultados, 'gridCanciones');
+              encontrado = true;
+              break;
+            }
+          }
+        } catch (e) {
+          console.warn('Probando siguiente nodo de búsqueda...');
+        }
+      }
+
+      if (!encontrado) {
+        grid.innerHTML = '<p style="color:#aaa;">No se obtuvieron resultados en esta búsqueda. Intenta con otro término.</p>';
       }
     }
 
@@ -203,12 +239,13 @@
       player.pause();
 
       let reproducido = false;
-      for (const server of API_SERVERS) {
+
+      for (const node of ENDPOINTS) {
         try {
-          const res = await fetch(`${server}/streams/${ytId}`);
+          const res = await fetch(`${node.stream}${ytId}`);
           if (res.ok) {
             const data = await res.json();
-            const audioStream = data.audioStreams ? data.audioStreams[0] : null;
+            const audioStream = data.adaptiveFormats ? data.adaptiveFormats.find(f => f.type && f.type.includes('audio')) : null;
             if (audioStream && audioStream.url) {
               player.src = audioStream.url;
               player.play();
@@ -217,60 +254,34 @@
             }
           }
         } catch (e) {
-          console.warn(`Reintentando en servidor de respaldo...`);
+          console.warn('Probando servidor alternativo de transmisión...');
         }
       }
 
       if (!reproducido) {
-        alert('No se pudo cargar la pista de audio. Intenta con otra canción.');
+        // Método de seguridad alternativo
+        player.src = `https://invidious.nerdvpn.de/latest_version?id=${ytId}&italic=true`;
+        player.play();
       }
-    }
-
-    async function buscar() {
-      const q = document.getElementById('searchInput').value.trim();
-      if (!q) return;
-
-      document.getElementById('tituloSeccion').innerText = `Resultados para "${q}"`;
-      const grid = document.getElementById('gridCanciones');
-      grid.innerHTML = '<p style="color:#aaa;">Buscando en YouTube...</p>';
-      document.getElementById('gridArtistas').innerHTML = '';
-
-      for (const server of API_SERVERS) {
-        try {
-          const res = await fetch(`${server}/search?q=${encodeURIComponent(q)}&filter=videos`);
-          if (res.ok) {
-            const data = await res.json();
-            if (data.items && data.items.length > 0) {
-              const resultados = data.items.slice(0, 18).map(v => ({
-                id: v.url.replace('/watch?v=', ''),
-                title: v.title,
-                artist: v.uploaderName,
-                cover: v.thumbnail
-              }));
-              renderizarCanciones(resultados, 'gridCanciones');
-              return;
-            }
-          }
-        } catch (e) {}
-      }
-      grid.innerHTML = '<p style="color:#ff5555;">Error al buscar. Haz clic en Buscar otra vez.</p>';
     }
 
     function mostrarSeccion(seccion) {
-      const gridArtistas = document.getElementById('gridArtistas');
+      const tituloArtistas = document.getElementById('tituloArtistas');
       if (seccion === 'inicio' || seccion === 'top-canciones') {
-        document.getElementById('tituloSeccion').innerText = '🔥 Canciones Tops';
+        document.getElementById('tituloPrincipal').innerText = '🔥 Canciones Tops';
+        tituloArtistas.style.display = 'block';
         renderizarCanciones(topCancionesData, 'gridCanciones');
         renderizarArtistas();
       } else if (seccion === 'top-artistas') {
-        document.getElementById('tituloSeccion').innerText = '🎤 Artistas Tops';
+        document.getElementById('tituloPrincipal').innerText = '🎤 Artistas Tops';
         document.getElementById('gridCanciones').innerHTML = '';
+        tituloArtistas.style.display = 'none';
         renderizarArtistas();
       } else if (seccion === 'mi-lista') {
-        document.getElementById('tituloSeccion').innerText = '➕ Mi Playlist';
-        gridArtistas.innerHTML = '';
+        document.getElementById('tituloPrincipal').innerText = '➕ Mi Playlist';
+        tituloArtistas.style.display = 'none';
         if (miPlaylist.length === 0) {
-          document.getElementById('gridCanciones').innerHTML = '<p style="color:#aaa;">Tu lista está vacía. Añade canciones pulsando el botón + sobre cada tarjeta.</p>';
+          document.getElementById('gridCanciones').innerHTML = '<p style="color:#aaa;">Tu lista está vacía. Añade canciones pulsando el botón ＋.</p>';
         } else {
           renderizarCanciones(miPlaylist, 'gridCanciones');
         }
