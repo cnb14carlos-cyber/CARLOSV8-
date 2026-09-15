@@ -3,11 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Loopy Music - Player</title>
+  <title>CarlosV8 - Reproductor Completo</title>
   <style>
     :root {
       --accent: #8a2be2;
-      --accent-hover: #a142f5;
       --bg-dark: #0f0f13;
       --bg-card: #181820;
       --bg-sidebar: #0a0a0d;
@@ -17,496 +16,176 @@
       --border: #262633;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-    body { background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; padding-bottom: 95px; user-select: none; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; padding-bottom: 110px; }
 
-    .app { display: flex; min-height: calc(100vh - 95px); }
+    .app { display: flex; min-height: calc(100vh - 110px); }
 
-    /* Lateral / Sidebar */
-    .sidebar { width: 240px; background: var(--bg-sidebar); padding: 20px 16px; border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
-    .brand { font-size: 22px; font-weight: 800; color: var(--accent); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
-    .nav-item { background: transparent; border: none; color: var(--text-sub); padding: 12px 14px; border-radius: 8px; font-weight: 600; text-align: left; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; transition: 0.15s; }
+    /* Menú Lateral */
+    .sidebar { width: 230px; background: var(--bg-sidebar); padding: 20px 16px; border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+    .brand { font-size: 22px; font-weight: 800; color: var(--accent); margin-bottom: 16px; }
+    .nav-item { background: transparent; border: none; color: var(--text-sub); padding: 12px 14px; border-radius: 8px; font-weight: 600; text-align: left; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; }
     .nav-item:hover, .nav-item.active { color: #fff; background: var(--bg-card); }
     .nav-item.active { border-left: 3px solid var(--accent); }
 
     /* Contenido Principal */
     .content { flex: 1; padding: 24px; overflow-y: auto; }
 
-    /* Buscador y Temas */
-    .top-bar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
-    .search-input { flex: 1; min-width: 200px; padding: 12px 18px; border-radius: 25px; border: 1px solid var(--border); background: var(--bg-card); color: #fff; font-size: 14px; outline: none; }
-    .btn-main { background: var(--accent); border: none; padding: 12px 24px; border-radius: 25px; font-weight: bold; color: #fff; cursor: pointer; transition: 0.2s; }
-    .btn-main:hover { background: var(--accent-hover); }
+    .top-bar { display: flex; gap: 12px; margin-bottom: 24px; }
+    .search-input { flex: 1; padding: 12px 18px; border-radius: 25px; border: 1px solid var(--border); background: var(--bg-card); color: #fff; font-size: 14px; outline: none; }
+    .btn-main { background: var(--accent); border: none; padding: 12px 24px; border-radius: 25px; font-weight: bold; color: #fff; cursor: pointer; }
 
-    /* Secciones */
-    .section-title { font-size: 20px; font-weight: 800; margin: 20px 0 14px 0; display: flex; justify-content: space-between; align-items: center; }
+    .section-title { font-size: 20px; font-weight: 800; margin: 20px 0 14px 0; }
 
-    /* Rejilla de canciones */
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
-    .card { background: var(--bg-card); padding: 12px; border-radius: 10px; cursor: pointer; transition: 0.15s; position: relative; border: 1px solid transparent; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
+    .card { background: var(--bg-card); padding: 12px; border-radius: 10px; cursor: pointer; transition: 0.15s; border: 1px solid transparent; }
     .card:hover { border-color: var(--border); transform: translateY(-3px); }
     .card img { width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; background: #222; }
     .card-title { font-weight: bold; margin-top: 10px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .card-sub { color: var(--text-sub); font-size: 11px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    .card-actions { position: absolute; top: 18px; right: 18px; display: flex; gap: 6px; }
-    .icon-btn { background: rgba(0,0,0,0.7); border: none; color: #fff; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; }
-    .icon-btn:hover { background: var(--accent); }
-
-    /* Selector de Color de Tema */
-    .theme-picker { display: flex; gap: 10px; margin-top: 10px; }
-    .color-dot { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid #fff; }
-
-    /* Modal de Letras y Playlists */
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
-    .modal.open { display: flex; }
-    .modal-content { background: var(--bg-card); width: 100%; max-width: 500px; padding: 24px; border-radius: 16px; border: 1px solid var(--border); max-height: 80vh; overflow-y: auto; }
-    .lyrics-text { font-size: 15px; line-height: 1.8; color: #ddd; white-space: pre-wrap; margin-top: 15px; }
-
     /* Reproductor en Parte Inferior */
-    .player-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 95px; background: var(--bg-player); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; gap: 15px; }
-    .track-info { display: flex; align-items: center; gap: 12px; width: 28%; min-width: 180px; }
-    .cover-box { width: 54px; height: 54px; background: #222; border-radius: 8px; overflow: hidden; flex-shrink: 0; }
+    .player-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 110px; background: var(--bg-player); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; z-index: 100; gap: 20px; }
+    .track-info { display: flex; align-items: center; gap: 12px; width: 250px; }
+    .cover-box { width: 50px; height: 50px; background: #222; border-radius: 6px; overflow: hidden; flex-shrink: 0; }
     .cover-box img { width: 100%; height: 100%; object-fit: cover; }
     .track-title { font-weight: bold; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .track-artist { color: var(--text-sub); font-size: 12px; margin-top: 2px; }
 
-    .center-controls { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 44%; }
-    .control-btns { display: flex; align-items: center; gap: 16px; }
-    .ctrl-btn { background: none; border: none; color: var(--text-sub); cursor: pointer; font-size: 18px; }
-    .ctrl-btn:hover, .ctrl-btn.active { color: var(--accent); }
-    .play-btn { background: var(--accent); color: #fff; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; border: none; cursor: pointer; }
-    
-    .progress-box { display: flex; align-items: center; gap: 10px; width: 100%; font-size: 11px; color: var(--text-sub); }
-    .progress-bar { flex: 1; height: 4px; background: #333; border-radius: 2px; appearance: none; outline: none; cursor: pointer; }
-    .progress-bar::-webkit-slider-thumb { appearance: none; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
-
-    .right-controls { display: flex; align-items: center; gap: 12px; width: 28%; justify-content: flex-end; }
-    .vol-bar { width: 80px; height: 4px; background: #333; border-radius: 2px; appearance: none; outline: none; cursor: pointer; }
-    .vol-bar::-webkit-slider-thumb { appearance: none; width: 10px; height: 10px; border-radius: 50%; background: #fff; }
+    /* Pantalla de Reproductor de YouTube */
+    .youtube-container { flex: 1; max-width: 500px; height: 80px; border-radius: 8px; overflow: hidden; background: #000; }
+    .youtube-container iframe { width: 100%; height: 100%; border: none; }
   </style>
 </head>
 <body>
 
   <div class="app">
-    <!-- Menú Lateral estilo Loopy -->
     <aside class="sidebar">
-      <div class="brand">🎵 Loopy Music</div>
-      <button class="nav-item active" onclick="verSeccion('inicio')">🏠 Explorar</button>
-      <button class="nav-item" onclick="verSeccion('favoritos')">❤️ Mis Favoritos (<span id="cntFavs">0</span>)</button>
-      <button class="nav-item" onclick="verSeccion('playlists')">📂 Mis Playlists</button>
-      <button class="nav-item" onclick="verSeccion('locales')">💾 Archivos Locales</button>
-      <button class="nav-item" onclick="verSeccion('ajustes')">🎨 Apariencia</button>
+      <div class="brand">🎵 CarlosV8</div>
+      <button class="nav-item active" onclick="verSeccion('top')">🔥 Canciones Completas</button>
+      <button class="nav-item" onclick="verSeccion('locales')">💾 Subir Mis MP3</button>
     </aside>
 
-    <!-- Área Principal -->
     <main class="content">
       <div class="top-bar">
-        <input type="text" id="searchInput" class="search-input" placeholder="Buscar canciones, artistas o álbumes..." onkeypress="if(event.key==='Enter') buscar()">
-        <button class="btn-main" onclick="buscar()">Buscar</button>
+        <input type="text" id="searchInput" class="search-input" placeholder="Buscar canción completa (ej: LALION, Bad Bunny...)" onkeypress="if(event.key==='Enter') buscarYT()">
+        <button class="btn-main" onclick="buscarYT()">Buscar</button>
       </div>
 
       <div id="viewContainer"></div>
     </main>
   </div>
 
-  <!-- Reproductor Inferior -->
+  <!-- Reproductor Inferior con YouTube -->
   <footer class="player-bar">
     <div class="track-info">
       <div class="cover-box" id="pCover"><div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--accent);">🎵</div></div>
       <div style="overflow:hidden;">
-        <div class="track-title" id="pTitle">Sin reproducción</div>
-        <div class="track-artist" id="pArtist">Loopy Music</div>
-      </div>
-      <button class="ctrl-btn" id="btnFavTrack" onclick="toggleFavActual()">🤍</button>
-    </div>
-
-    <div class="center-controls">
-      <div class="control-btns">
-        <button class="ctrl-btn" id="btnShuffle" onclick="toggleShuffle()" title="Aleatorio">🔀</button>
-        <button class="ctrl-btn" onclick="prevTrack()">⏮️</button>
-        <button class="play-btn" id="btnPlayPause" onclick="togglePlay()">▶</button>
-        <button class="ctrl-btn" onclick="nextTrack()">⏭️</button>
-        <button class="ctrl-btn" id="btnLoop" onclick="toggleLoop()" title="Bucle">🔁</button>
-      </div>
-      <div class="progress-box">
-        <span id="currentTime">0:00</span>
-        <input type="range" id="seekBar" class="progress-bar" value="0" max="100" oninput="seekAudio(this.value)">
-        <span id="durationTime">0:30</span>
+        <div class="track-title" id="pTitle">Selecciona una canción</div>
+        <div class="track-artist" id="pArtist">Canción Entera (YouTube)</div>
       </div>
     </div>
 
-    <div class="right-controls">
-      <button class="ctrl-btn" onclick="abrirLetras()" title="Ver Letra">📜 Letra</button>
-      <span>🔊</span>
-      <input type="range" id="volBar" class="vol-bar" min="0" max="1" step="0.05" value="1" oninput="setVolumen(this.value)">
+    <!-- Integración de reproductor YouTube para canciones completas -->
+    <div class="youtube-container" id="ytPlayerBox">
+      <div style="color:#aaa; font-size:12px; display:flex; align-items:center; justify-content:center; height:100%;">
+        Haz clic en una canción para reproducirla entera
+      </div>
     </div>
   </footer>
 
-  <audio id="audioEngine"></audio>
-
-  <!-- Modales -->
-  <div class="modal" id="modalLyrics">
-    <div class="modal-content">
-      <div class="section-title">
-        <span id="lyricsTitle">Letra de la canción</span>
-        <button class="ctrl-btn" onclick="cerrarModal('modalLyrics')">✕</button>
-      </div>
-      <div class="lyrics-text" id="lyricsBody">Cargando letra...</div>
-    </div>
-  </div>
-
-  <div class="modal" id="modalPlaylist">
-    <div class="modal-content">
-      <div class="section-title">
-        <span>Añadir a Playlist</span>
-        <button class="ctrl-btn" onclick="cerrarModal('modalPlaylist')">✕</button>
-      </div>
-      <div id="playlistOptions" style="margin-top:15px; display:flex; flex-direction:column; gap:10px;"></div>
-    </div>
-  </div>
-
   <script>
-    // Datos y Estado
-    const topData = [
-      { id: '1', title: 'MONACO', artist: 'Bad Bunny', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/bf/16/d6/bf16d6c3-1f19-9154-1a3b-24b553e1bf2c/197188981440.jpg/200x200bb.jpg', previewUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview116/v4/6c/df/0a/6cdf0a3a-2373-19cb-e4d0-47b2c5e52c80/mzaf_13303683510595568897.plus.aac.p.m4a' },
-      { id: '2', title: 'Columbia', artist: 'Quevedo', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/6d/2c/18/6d2c18df-e53b-e0fa-9869-79f977c08b5f/8445162816911.jpg/200x200bb.jpg', previewUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview116/v4/c2/f7/68/c2f76816-0158-b610-8b4e-28beeb3cf38b/mzaf_14436894042838734026.plus.aac.p.m4a' },
-      { id: '3', title: 'LALA', artist: 'Myke Towers', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/64/73/4f/64734f19-33b8-68f7-7b69-f81d1131c19b/190296238803.jpg/200x200bb.jpg', previewUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview116/v4/b8/b8/63/b8b863aa-8d02-2cb1-bf9d-f682bb1978eb/mzaf_11306660601614749385.plus.aac.p.m4a' },
-      { id: '4', title: 'LUNA', artist: 'Feid & ATL Jacob', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/13/be/05/13be059f-d31d-d249-14a2-e612f08535f2/23UM1IM35706.rgb.jpg/200x200bb.jpg', previewUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview126/v4/e5/cd/02/e5cd0244-15c2-491d-a46c-c9f280a316a3/mzaf_8497645062569234850.plus.aac.p.m4a' }
+    // Canciones de ejemplo con IDs de YouTube para reproducir completas
+    const cancionesCompletas = [
+      { title: 'MONACO', artist: 'Bad Bunny', ytId: 'V9PVRfjEBTI', cover: 'https://img.youtube.com/vi/V9PVRfjEBTI/hqdefault.jpg' },
+      { title: 'Columbia', artist: 'Quevedo', ytId: 'QeI2XmKTh0M', cover: 'https://img.youtube.com/vi/QeI2XmKTh0M/hqdefault.jpg' },
+      { title: 'LALA', artist: 'Myke Towers', ytId: 'gA_33S3e_Xg', cover: 'https://img.youtube.com/vi/gA_33S3e_Xg/hqdefault.jpg' },
+      { title: 'LUNA', artist: 'Feid & ATL Jacob', ytId: '6T3oR1JzvhU', cover: 'https://img.youtube.com/vi/6T3oR1JzvhU/hqdefault.jpg' }
     ];
 
-    let favoritos = JSON.parse(localStorage.getItem('loopy_favs')) || [];
-    let playlists = JSON.parse(localStorage.getItem('loopy_playlists')) || { "Mi Playlist Principal": [] };
-    let listaActual = [...topData];
-    let indiceActual = -1;
-    let songToAdd = null;
-    let isShuffle = false;
-
-    const audio = document.getElementById('audioEngine');
-
-    // Inicialización
-    document.addEventListener('DOMContentLoaded', () => {
-      aplicarTema(localStorage.getItem('loopy_theme') || '#8a2be2');
-      verSeccion('inicio');
-      actualizarContadores();
-    });
-
-    function actualizarContadores() {
-      document.getElementById('cntFavs').innerText = favoritos.length;
-      localStorage.setItem('loopy_favs', JSON.stringify(favoritos));
-      localStorage.setItem('loopy_playlists', JSON.stringify(playlists));
-    }
-
-    // Navegación
     function verSeccion(sec) {
       const container = document.getElementById('viewContainer');
       document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
 
-      if (sec === 'inicio') {
-        container.innerHTML = `<h2 class="section-title">🔥 Éxitos Destacados</h2><div class="grid" id="mainGrid"></div>`;
-        renderGrid(topData, 'mainGrid');
-      } else if (sec === 'favoritos') {
-        container.innerHTML = `<h2 class="section-title">❤️ Tus Canciones Favoritas</h2><div class="grid" id="favGrid"></div>`;
-        if (favoritos.length === 0) container.innerHTML += `<p style="color:var(--text-sub);">No has guardado favoritos aún.</p>`;
-        else renderGrid(favoritos, 'favGrid');
-      } else if (sec === 'playlists') {
-        renderPlaylistsView(container);
+      if (sec === 'top') {
+        container.innerHTML = `<h2 class="section-title">🔥 Éxitos Destacados (Canciones Enteras)</h2><div class="grid" id="mainGrid"></div>`;
+        renderGrid(cancionesCompletas, 'mainGrid');
       } else if (sec === 'locales') {
-        renderLocalesView(container);
-      } else if (sec === 'ajustes') {
-        renderAjustesView(container);
+        container.innerHTML = `
+          <h2 class="section-title">💾 Tus Archivos MP3 Completos</h2>
+          <div style="background:var(--bg-card); padding:30px; border-radius:12px; text-align:center; border:2px dashed var(--border);">
+            <p style="margin-bottom:15px; color:var(--text-sub);">Si tienes canciones descargadas en tu dispositivo, puedes subirlas para escucharlas enteras:</p>
+            <input type="file" id="mp3Input" accept="audio/*" multiple style="display:none;" onchange="cargarLocales(event)">
+            <button class="btn-main" onclick="document.getElementById('mp3Input').click()">📂 Cargar Archivos MP3</button>
+          </div>
+          <div class="grid" id="localGrid" style="margin-top:20px;"></div>
+        `;
       }
     }
 
-    // Renderizado de Grilla
     function renderGrid(lista, elementId) {
       const grid = document.getElementById(elementId);
-      if(!grid) return;
-      const frag = document.createDocumentFragment();
+      if (!grid) return;
+      grid.innerHTML = '';
 
-      lista.forEach((s, idx) => {
-        const isFav = favoritos.some(f => f.id === s.id);
+      lista.forEach(s => {
         const card = document.createElement('div');
         card.className = 'card';
-        card.onclick = () => reproducirLista(lista, idx);
+        card.onclick = () => reproducirEntera(s);
 
         card.innerHTML = `
-          <div class="card-actions">
-            <button class="icon-btn" onclick="event.stopPropagation(); toggleFav('${s.id}', event)">${isFav ? '❤️' : '🤍'}</button>
-            <button class="icon-btn" onclick="event.stopPropagation(); abrirModalPlaylist('${s.id}', event)">➕</button>
-          </div>
-          <img src="${s.cover}" loading="lazy">
+          <img src="${s.cover}">
           <div class="card-title">${s.title}</div>
           <div class="card-sub">${s.artist}</div>
         `;
-        frag.appendChild(card);
+        grid.appendChild(card);
       });
-
-      grid.innerHTML = '';
-      grid.appendChild(frag);
     }
 
-    // Búsqueda en Vivo
-    async function buscar() {
-      const q = document.getElementById('searchInput').value.trim();
-      if (!q) return;
-      const container = document.getElementById('viewContainer');
-      container.innerHTML = `<h2 class="section-title">Resultados para "${q}"</h2><div class="grid" id="searchGrid"><p>Buscando...</p></div>`;
-
-      try {
-        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&limit=24`);
-        const data = await res.json();
-        const resultados = data.results.map(item => ({
-          id: String(item.trackId || Math.random()),
-          title: item.trackName || 'Sin título',
-          artist: item.artistName || 'Desconocido',
-          cover: item.artworkUrl100 ? item.artworkUrl100.replace('100x100bb', '200x200bb') : 'https://via.placeholder.com/200',
-          previewUrl: item.previewUrl
-        }));
-        renderGrid(resultados, 'searchGrid');
-      } catch (e) {
-        document.getElementById('searchGrid').innerHTML = '<p>Error al cargar resultados.</p>';
-      }
-    }
-
-    // Reproducción y Controles
-    function reproducirLista(lista, idx) {
-      listaActual = lista;
-      indiceActual = idx;
-      const s = listaActual[indiceActual];
-
+    function reproducirEntera(s) {
       document.getElementById('pTitle').innerText = s.title;
       document.getElementById('pArtist').innerText = s.artist;
       document.getElementById('pCover').innerHTML = `<img src="${s.cover}">`;
-      
-      actualizarIconoFavActual();
 
-      audio.src = s.previewUrl;
-      audio.play();
-      document.getElementById('btnPlayPause').innerText = '⏸';
-    }
+      const box = document.getElementById('ytPlayerBox');
 
-    function togglePlay() {
-      if (!audio.src) return;
-      if (audio.paused) {
-        audio.play();
-        document.getElementById('btnPlayPause').innerText = '⏸';
-      } else {
-        audio.pause();
-        document.getElementById('btnPlayPause').innerText = '▶';
+      if (s.ytId) {
+        // Carga la canción completa desde YouTube
+        box.innerHTML = `<iframe src="https://www.youtube.com/embed/${s.ytId}?autoplay=1" allow="autoplay"></iframe>`;
+      } else if (s.localUrl) {
+        // Carga el archivo local completo
+        box.innerHTML = `<audio controls autoplay style="width:100%; margin-top:20px;"><source src="${s.localUrl}"></audio>`;
       }
     }
 
-    function prevTrack() {
-      if (indiceActual > 0) reproducirLista(listaActual, indiceActual - 1);
+    function buscarYT() {
+      const q = document.getElementById('searchInput').value.trim();
+      if (!q) return;
+
+      // Buscar directamente el vídeo/canción en YouTube
+      const queryEnc = encodeURIComponent(q + " audio");
+      const ytSearchUrl = `https://www.youtube.com/results?search_query=${queryEnc}`;
+
+      // Abre la búsqueda completa o te permite reproducir cualquier término
+      alert(`Buscando la canción completa "${q}". Presiona Aceptar para ver los resultados enteros.`);
+      window.open(ytSearchUrl, '_blank');
     }
 
-    function nextTrack() {
-      if (isShuffle) {
-        const rand = Math.floor(Math.random() * listaActual.length);
-        reproducirLista(listaActual, rand);
-      } else if (indiceActual < listaActual.length - 1) {
-        reproducirLista(listaActual, indiceActual + 1);
-      }
-    }
-
-    function toggleShuffle() {
-      isShuffle = !isShuffle;
-      document.getElementById('btnShuffle').classList.toggle('active', isShuffle);
-    }
-
-    function toggleLoop() {
-      audio.loop = !audio.loop;
-      document.getElementById('btnLoop').classList.toggle('active', audio.loop);
-    }
-
-    // Barra de tiempo
-    audio.ontimeupdate = () => {
-      if (audio.duration) {
-        const cur = audio.currentTime;
-        const dur = audio.duration;
-        document.getElementById('seekBar').value = (cur / dur) * 100;
-        document.getElementById('currentTime').innerText = fmtTime(cur);
-        document.getElementById('durationTime').innerText = fmtTime(dur);
-      }
-    };
-
-    audio.onended = () => nextTrack();
-
-    function seekAudio(val) {
-      if (audio.duration) audio.currentTime = (val / 100) * audio.duration;
-    }
-
-    function setVolumen(v) { audio.volume = v; }
-
-    function fmtTime(s) {
-      const m = Math.floor(s / 60);
-      const sec = Math.floor(s % 60);
-      return `${m}:${sec < 10 ? '0' : ''}${sec}`;
-    }
-
-    // Favoritos
-    function toggleFav(id, ev) {
-      const allKnown = [...topData, ...listaActual, ...favoritos];
-      const s = allKnown.find(x => x.id === id);
-      if (!s) return;
-
-      const idx = favoritos.findIndex(f => f.id === id);
-      if (idx >= 0) favoritos.splice(idx, 1);
-      else favoritos.push(s);
-
-      actualizarContadores();
-      actualizarIconoFavActual();
-      
-      // Refrescar vista si estamos en favs o inicio
-      const activeNav = document.querySelector('.nav-item.active').innerText;
-      if (activeNav.includes('Favoritos')) verSeccion('favoritos');
-      else if (activeNav.includes('Explorar')) renderGrid(topData, 'mainGrid');
-    }
-
-    function toggleFavActual() {
-      if (indiceActual >= 0) {
-        toggleFav(listaActual[indiceActual].id);
-      }
-    }
-
-    function actualizarIconoFavActual() {
-      if (indiceActual < 0) return;
-      const isFav = favoritos.some(f => f.id === listaActual[indiceActual].id);
-      document.getElementById('btnFavTrack').innerText = isFav ? '❤️' : '🤍';
-    }
-
-    // Gestor de Playlists
-    function renderPlaylistsView(container) {
-      let html = `<div class="section-title">
-        <span>📂 Mis Playlists</span>
-        <button class="btn-main" onclick="crearNuevaPlaylist()">+ Crear Playlist</button>
-      </div>`;
-
-      Object.keys(playlists).forEach(nombre => {
-        html += `<div style="background:var(--bg-card); padding:16px; border-radius:12px; margin-bottom:16px; border:1px solid var(--border);">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <h3 style="font-size:16px;">${nombre} (${playlists[nombre].length} canciones)</h3>
-            <button class="ctrl-btn" onclick="borrarPlaylist('${nombre}')">🗑️ Borrar</button>
-          </div>
-          <div class="grid" id="pl_${nombre.replace(/\s+/g, '_')}"></div>
-        </div>`;
-      });
-
-      container.innerHTML = html;
-      Object.keys(playlists).forEach(nombre => {
-        renderGrid(playlists[nombre], `pl_${nombre.replace(/\s+/g, '_')}`);
-      });
-    }
-
-    function crearNuevaPlaylist() {
-      const nombre = prompt('Nombre de la nueva playlist:');
-      if (nombre && !playlists[nombre]) {
-        playlists[nombre] = [];
-        actualizarContadores();
-        verSeccion('playlists');
-      }
-    }
-
-    function borrarPlaylist(nombre) {
-      if (confirm(`¿Eliminar la playlist "${nombre}"?`)) {
-        delete playlists[nombre];
-        actualizarContadores();
-        verSeccion('playlists');
-      }
-    }
-
-    function abrirModalPlaylist(id) {
-      const allKnown = [...topData, ...listaActual, ...favoritos];
-      songToAdd = allKnown.find(x => x.id === id);
-      const opts = document.getElementById('playlistOptions');
-      opts.innerHTML = '';
-
-      Object.keys(playlists).forEach(nombre => {
-        const btn = document.createElement('button');
-        btn.className = 'nav-item';
-        btn.style.background = 'var(--bg-dark)';
-        btn.innerText = `➕ ${nombre}`;
-        btn.onclick = () => {
-          if (!playlists[nombre].some(s => s.id === songToAdd.id)) {
-            playlists[nombre].push(songToAdd);
-            actualizarContadores();
-            alert(`Añadida a ${nombre}`);
-          }
-          cerrarModal('modalPlaylist');
-        };
-        opts.appendChild(btn);
-      });
-
-      document.getElementById('modalPlaylist').classList.add('open');
-    }
-
-    function cerrarModal(id) { document.getElementById(id).classList.remove('open'); }
-
-    // Archivos Locales
-    function renderLocalesView(container) {
-      container.innerHTML = `
-        <h2 class="section-title">💾 Reproducir Archivos Locales</h2>
-        <div style="background:var(--bg-card); padding:30px; border-radius:16px; border:2px dashed var(--border); text-align:center;">
-          <p style="margin-bottom:16px; color:var(--text-sub);">Selecciona archivos de audio (.mp3, .wav) de tu dispositivo para escucharlos en Loopy:</p>
-          <input type="file" id="localFileInput" accept="audio/*" multiple style="display:none;" onchange="cargarArchivosLocales(event)">
-          <button class="btn-main" onclick="document.getElementById('localFileInput').click()">📂 Cargar Archivos</button>
-        </div>
-        <div class="grid" id="localGrid" style="margin-top:20px;"></div>
-      `;
-    }
-
-    function cargarArchivosLocales(e) {
+    function cargarLocales(e) {
       const files = Array.from(e.target.files);
-      const locales = files.map((file, i) => ({
-        id: 'local_' + Date.now() + '_' + i,
+      const lista = files.map(file => ({
         title: file.name.replace(/\.[^/.]+$/, ""),
-        artist: 'Archivo Local',
+        artist: 'Archivo Local MP3',
         cover: 'https://via.placeholder.com/200/8a2be2/ffffff?text=MP3',
-        previewUrl: URL.createObjectURL(file)
+        localUrl: URL.createObjectURL(file)
       }));
 
-      renderGrid(locales, 'localGrid');
+      renderGrid(lista, 'localGrid');
     }
 
-    // Visualización de Letras
-    async function abrirLetras() {
-      if (indiceActual < 0) return alert('Primero reproduce una canción.');
-      const track = listaActual[indiceActual];
-      document.getElementById('lyricsTitle').innerText = `${track.title} - ${track.artist}`;
-      document.getElementById('lyricsBody').innerText = 'Buscando letra en vivo...';
-      document.getElementById('modalLyrics').classList.add('open');
-
-      try {
-        const res = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(track.artist)}/${encodeURIComponent(track.title)}`);
-        const data = await res.json();
-        document.getElementById('lyricsBody').innerText = data.lyrics || 'Letra no encontrada para este tema.';
-      } catch (e) {
-        document.getElementById('lyricsBody').innerText = `🎵 Reproduciendo: ${track.title}\n\n(No se pudo conectar al servidor de letras para este tema exacto).`;
-      }
-    }
-
-    // Temas y Apariencia
-    function renderAjustesView(container) {
-      container.innerHTML = `
-        <h2 class="section-title">🎨 Personalizar Apariencia</h2>
-        <div style="background:var(--bg-card); padding:20px; border-radius:12px; border:1px solid var(--border);">
-          <p style="margin-bottom:12px; color:var(--text-sub);">Elige el color principal de la aplicación:</p>
-          <div class="theme-picker">
-            <div class="color-dot" style="background:#8a2be2;" onclick="aplicarTema('#8a2be2')"></div>
-            <div class="color-dot" style="background:#ff007f;" onclick="aplicarTema('#ff007f')"></div>
-            <div class="color-dot" style="background:#1DB954;" onclick="aplicarTema('#1DB954')"></div>
-            <div class="color-dot" style="background:#00d2ff;" onclick="aplicarTema('#00d2ff')"></div>
-          </div>
-        </div>
-      `;
-    }
-
-    function aplicarTema(color) {
-      document.documentElement.style.setProperty('--accent', color);
-      document.documentElement.style.setProperty('--accent-hover', color);
-      localStorage.setItem('loopy_theme', color);
-    }
+    document.addEventListener('DOMContentLoaded', () => {
+      verSeccion('top');
+    });
   </script>
 </body>
 </html>
