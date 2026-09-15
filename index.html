@@ -7,59 +7,64 @@
   <title>CarlosV8 - Music Player</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body { background-color: #121212; color: #ffffff; min-height: 100vh; padding-bottom: 90px; }
+    body { background-color: #121212; color: #ffffff; min-height: 100vh; padding-bottom: 95px; }
 
-    .app-container { display: flex; min-height: calc(100vh - 90px); }
+    .app-container { display: flex; min-height: calc(100vh - 95px); }
 
     /* Menú lateral */
     .sidebar {
-      width: 220px; background: #000000; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; flex-shrink: 0;
+      width: 230px; background: #000000; padding: 20px 16px; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0;
     }
-    .brand { font-size: 20px; font-weight: 800; color: #1DB954; }
+    .brand { font-size: 22px; font-weight: 800; color: #1DB954; margin-bottom: 10px; }
     .nav-btn {
-      background: #282828; border: none; color: #ffffff; padding: 10px 14px;
-      border-radius: 6px; font-weight: 600; text-align: left; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px;
+      background: transparent; border: none; color: #b3b3b3; padding: 12px 14px;
+      border-radius: 8px; font-weight: bold; text-align: left; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; transition: 0.2s;
     }
+    .nav-btn:hover, .nav-btn.active { color: #ffffff; background: #282828; }
 
     /* Contenido Principal */
-    .main-content { flex: 1; padding: 30px; background: #121212; }
+    .main-content { flex: 1; padding: 24px; background: #121212; overflow-y: auto; }
     
-    .search-container {
-      background: #181818; padding: 20px; border-radius: 12px; margin-bottom: 24px; border: 1px solid #282828;
-    }
-    .search-box { display: flex; gap: 10px; margin-top: 10px; }
+    /* Buscador */
+    .search-box { display: flex; gap: 10px; margin-bottom: 24px; }
     .search-box input {
-      flex: 1; padding: 12px 18px; border-radius: 25px; border: 1px solid #333; background: #222; color: #fff; font-size: 15px; outline: none;
+      flex: 1; padding: 12px 18px; border-radius: 25px; border: 1px solid #333; background: #1f1f1f; color: #fff; font-size: 15px; outline: none;
     }
     .search-box button {
       background: #1DB954; border: none; padding: 12px 24px; border-radius: 25px; font-weight: bold; color: #000; cursor: pointer; transition: 0.2s;
     }
     .search-box button:hover { background: #1ed760; }
 
-    .section-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; color: #1DB954; }
+    .section-title { font-size: 20px; font-weight: 800; margin: 24px 0 14px 0; color: #ffffff; display: flex; justify-content: space-between; align-items: center; }
 
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 18px; }
-    .card { background: #181818; padding: 14px; border-radius: 10px; cursor: pointer; transition: background 0.2s, transform 0.2s; }
-    .card:hover { background: #252525; transform: translateY(-3px); }
-    .card img { width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; background: #282828; display: block; }
-    .card-title { font-weight: bold; margin-top: 10px; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
-    .card-sub { color: #aaaaaa; font-size: 12px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* Grilla de Canciones y Artistas */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
+    .card { background: #181818; padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; position: relative; }
+    .card:hover { background: #282828; transform: translateY(-4px); }
+    .card img { width: 100%; aspect-ratio: 1; border-radius: 6px; object-fit: cover; background: #282828; display: block; }
+    .card-title { font-weight: bold; margin-top: 8px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+    .card-sub { color: #aaa; font-size: 11px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
+    .add-playlist-btn {
+      position: absolute; top: 18px; right: 18px; background: rgba(0,0,0,0.7); border: none; color: #1DB954;
+      font-size: 18px; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .add-playlist-btn:hover { background: #1DB954; color: #000; }
+
+    /* Artistas Circulares */
+    .artist-card img { border-radius: 50% !important; }
 
     /* Reproductor Inferior */
     .player-bar {
-      position: fixed; bottom: 0; left: 0; width: 100%; height: 90px;
-      background: #000000; border-top: 1px solid #1f1f1f; display: flex;
-      align-items: center; justify-content: space-between; padding: 0 24px; z-index: 100;
+      position: fixed; bottom: 0; left: 0; width: 100%; height: 95px;
+      background: #000000; border-top: 1px solid #282828; display: flex;
+      align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100;
     }
-    .track-info { display: flex; align-items: center; gap: 14px; }
-    .cover-badge {
-      width: 48px; height: 48px; background: #1DB954; border-radius: 6px;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 800; font-size: 18px; color: #000; flex-shrink: 0; overflow: hidden;
-    }
-    .cover-badge img { width: 100%; height: 100%; object-fit: cover; }
-    .track-text { display: flex; flex-direction: column; }
-    .track-title { font-weight: bold; font-size: 14px; color: #ffffff; }
+    .track-info { display: flex; align-items: center; gap: 12px; width: 30%; }
+    .cover-box { width: 52px; height: 52px; background: #282828; border-radius: 6px; overflow: hidden; flex-shrink: 0; }
+    .cover-box img { width: 100%; height: 100%; object-fit: cover; }
+    .track-text { overflow: hidden; }
+    .track-title { font-weight: bold; font-size: 14px; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .track-artist { color: #aaaaaa; font-size: 12px; margin-top: 2px; }
 
     .player-controls { display: flex; align-items: center; gap: 15px; }
@@ -71,26 +76,35 @@
   <div class="app-container">
     <aside class="sidebar">
       <div class="brand">CarlosV8</div>
-      <button class="nav-btn">🏠 Inicio</button>
+      <button class="nav-btn active" onclick="mostrarSeccion('inicio')">🏠 Inicio</button>
+      <button class="nav-btn" onclick="mostrarSeccion('top-canciones')">🔥 Top Canciones</button>
+      <button class="nav-btn" onclick="mostrarSeccion('top-artistas')">🎤 Top Artistas</button>
+      <button class="nav-btn" onclick="mostrarSeccion('mi-lista')">➕ Mi Playlist (<span id="countPlaylist">0</span>)</button>
     </aside>
 
     <main class="main-content">
-      <div class="search-container">
-        <h2>Buscador Directo (Sin Anuncios)</h2>
-        <div class="search-box">
-          <input type="text" id="searchInput" placeholder="Escribe canción o artista..." onkeypress="if(event.key==='Enter') buscarVideo()">
-          <button onclick="buscarVideo()">Buscar</button>
-        </div>
+      <!-- Buscador Global -->
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Buscar canción o artista..." onkeypress="if(event.key==='Enter') buscar()">
+        <button onclick="buscar()">Buscar</button>
       </div>
 
-      <h2 class="section-title" id="tituloResultados">Resultados</h2>
-      <div class="grid" id="gridResultados"></div>
+      <!-- Vista: Inicio / Canciones / Resultados -->
+      <div id="vistaPrincipal">
+        <h2 class="section-title" id="tituloSeccion">🔥 Canciones Tops</h2>
+        <div class="grid" id="gridCanciones"></div>
+
+        <h2 class="section-title">🎤 Artistas Tops</h2>
+        <div class="grid" id="gridArtistas"></div>
+      </div>
     </main>
   </div>
 
   <footer class="player-bar">
     <div class="track-info">
-      <div class="cover-badge" id="coverContainer">V8</div>
+      <div class="cover-box" id="coverContainer">
+        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#1DB954;font-weight:bold;">V8</div>
+      </div>
       <div class="track-text">
         <div class="track-title" id="title">Selecciona una canción</div>
         <div class="track-artist" id="artist">CarlosV8 Player</div>
@@ -102,60 +116,85 @@
   </footer>
 
   <script>
-    // Lista de servidores para probar automáticamente si uno falla
+    // Servidores de audio directo sin bloqueo de YouTube
     const API_SERVERS = [
+      'https://pipedapi.kavin.rocks',
       'https://api.piped.privacydev.net',
-      'https://pipedapi.adminforge.de',
-      'https://pipedapi.drgns.space',
-      'https://pipedapi.kavin.rocks'
+      'https://pipedapi.adminforge.de'
     ];
 
-    async function fetchConRespaldo(endpoint) {
-      for (const server of API_SERVERS) {
-        try {
-          const res = await fetch(`${server}${endpoint}`);
-          if (res.ok) return await res.json();
-        } catch (e) {
-          console.warn(`Falló ${server}, probando siguiente servidor...`);
-        }
-      }
-      throw new Error('Servidores no disponibles');
+    const topCancionesData = [
+      { id: 'f0X90C8eA4M', title: 'MONACO', artist: 'Bad Bunny', cover: 'https://i.ytimg.com/vi/f0X90C8eA4M/hqdefault.jpg' },
+      { id: 'm49a2gA2LNo', title: 'Columbia', artist: 'Quevedo', cover: 'https://i.ytimg.com/vi/m49a2gA2LNo/hqdefault.jpg' },
+      { id: 'g202Bv-N4qA', title: 'LALA', artist: 'Myke Towers', cover: 'https://i.ytimg.com/vi/g202Bv-N4qA/hqdefault.jpg' },
+      { id: 'sL2B734a2e0', title: 'LUNA', artist: 'Feid', cover: 'https://i.ytimg.com/vi/sL2B734a2e0/hqdefault.jpg' },
+      { id: 'sJ92c_Z6x3s', title: 'Classy 101', artist: 'Feid & Young Miko', cover: 'https://i.ytimg.com/vi/sJ92c_Z6x3s/hqdefault.jpg' },
+      { id: 'V9PVRfjEBTI', title: 'QLONA', artist: 'Karol G & Peso Pluma', cover: 'https://i.ytimg.com/vi/V9PVRfjEBTI/hqdefault.jpg' }
+    ];
+
+    const topArtistasData = [
+      { name: 'Bad Bunny', cover: 'https://i.ytimg.com/vi/f0X90C8eA4M/hqdefault.jpg' },
+      { name: 'Quevedo', cover: 'https://i.ytimg.com/vi/m49a2gA2LNo/hqdefault.jpg' },
+      { name: 'Feid', cover: 'https://i.ytimg.com/vi/sL2B734a2e0/hqdefault.jpg' },
+      { name: 'Myke Towers', cover: 'https://i.ytimg.com/vi/g202Bv-N4qA/hqdefault.jpg' },
+      { name: 'Karol G', cover: 'https://i.ytimg.com/vi/V9PVRfjEBTI/hqdefault.jpg' }
+    ];
+
+    let miPlaylist = JSON.parse(localStorage.getItem('carlosv8_playlist')) || [];
+
+    function actualizarContador() {
+      document.getElementById('countPlaylist').innerText = miPlaylist.length;
     }
 
-    async function buscarVideo() {
-      const q = document.getElementById('searchInput').value.trim() || 'Bad Bunny MONACO';
-      const grid = document.getElementById('gridResultados');
-      document.getElementById('tituloResultados').innerText = `Resultados para "${q}"`;
-      grid.innerHTML = '<p style="color:#aaa;">Buscando canción...</p>';
+    function renderizarCanciones(lista, contenedorId) {
+      const container = document.getElementById(contenedorId);
+      container.innerHTML = '';
+      lista.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.onclick = () => reproducir(s.id, s.title, s.artist, s.cover);
 
-      try {
-        const data = await fetchConRespaldo(`/search?q=${encodeURIComponent(q)}&filter=videos`);
-        grid.innerHTML = '';
+        card.innerHTML = `
+          <button class="add-playlist-btn" title="Añadir a mi lista" onclick="event.stopPropagation(); agregarAPlaylist('${s.id}', '${s.title.replace(/'/g, "\\'")}', '${s.artist.replace(/'/g, "\\'")}', '${s.cover}')">＋</button>
+          <img src="${s.cover}" referrerpolicy="no-referrer">
+          <div class="card-title">${s.title}</div>
+          <div class="card-sub">${s.artist}</div>
+        `;
+        container.appendChild(card);
+      });
+    }
 
-        if (!data.items || data.items.length === 0) {
-          grid.innerHTML = '<p style="color:#aaa;">No se encontraron resultados.</p>';
-          return;
-        }
+    function renderizarArtistas() {
+      const container = document.getElementById('gridArtistas');
+      container.innerHTML = '';
+      topArtistasData.forEach(a => {
+        const card = document.createElement('div');
+        card.className = 'card artist-card';
+        card.onclick = () => {
+          document.getElementById('searchInput').value = a.name;
+          buscar();
+        };
+        card.innerHTML = `
+          <img src="${a.cover}" referrerpolicy="no-referrer">
+          <div class="card-title" style="text-align:center;">${a.name}</div>
+          <div class="card-sub" style="text-align:center;">Artista Top</div>
+        `;
+        container.appendChild(card);
+      });
+    }
 
-        data.items.slice(0, 20).forEach(v => {
-          const videoId = v.url.replace('/watch?v=', '');
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.onclick = () => reproducirSinAnuncios(videoId, v.title, v.uploaderName, v.thumbnail);
-
-          card.innerHTML = `
-            <img src="${v.thumbnail}" referrerpolicy="no-referrer" onerror="this.src='https://via.placeholder.com/150/282828/ffffff?text=V8'">
-            <div class="card-title">${v.title}</div>
-            <div class="card-sub">${v.uploaderName}</div>
-          `;
-          grid.appendChild(card);
-        });
-      } catch (e) {
-        grid.innerHTML = '<p style="color:#ff5555;">Error de red. Intenta pulsar Buscar de nuevo.</p>';
+    function agregarAPlaylist(id, title, artist, cover) {
+      if (!miPlaylist.some(item => item.id === id)) {
+        miPlaylist.push({ id, title, artist, cover });
+        localStorage.setItem('carlosv8_playlist', JSON.stringify(miPlaylist));
+        actualizarContador();
+        alert(`"${title}" añadida a Mi Playlist`);
+      } else {
+        alert('Esta canción ya está en tu lista.');
       }
     }
 
-    async function reproducirSinAnuncios(ytId, title, artist, cover) {
+    async function reproducir(ytId, title, artist, cover) {
       document.getElementById('title').innerText = title;
       document.getElementById('artist').innerText = artist;
       document.getElementById('coverContainer').innerHTML = `<img src="${cover}" referrerpolicy="no-referrer">`;
@@ -163,24 +202,85 @@
       const player = document.getElementById('audioPlayer');
       player.pause();
 
-      try {
-        const data = await fetchConRespaldo(`/streams/${ytId}`);
-        const audioStream = data.audioStreams ? data.audioStreams[0] : null;
-
-        if (audioStream && audioStream.url) {
-          player.src = audioStream.url;
-          player.play();
-        } else {
-          alert('No se pudo obtener el audio de esta canción.');
+      let reproducido = false;
+      for (const server of API_SERVERS) {
+        try {
+          const res = await fetch(`${server}/streams/${ytId}`);
+          if (res.ok) {
+            const data = await res.json();
+            const audioStream = data.audioStreams ? data.audioStreams[0] : null;
+            if (audioStream && audioStream.url) {
+              player.src = audioStream.url;
+              player.play();
+              reproducido = true;
+              break;
+            }
+          }
+        } catch (e) {
+          console.warn(`Reintentando en servidor de respaldo...`);
         }
-      } catch (e) {
-        console.error('Error al reproducir audio:', e);
+      }
+
+      if (!reproducido) {
+        alert('No se pudo cargar la pista de audio. Intenta con otra canción.');
+      }
+    }
+
+    async function buscar() {
+      const q = document.getElementById('searchInput').value.trim();
+      if (!q) return;
+
+      document.getElementById('tituloSeccion').innerText = `Resultados para "${q}"`;
+      const grid = document.getElementById('gridCanciones');
+      grid.innerHTML = '<p style="color:#aaa;">Buscando en YouTube...</p>';
+      document.getElementById('gridArtistas').innerHTML = '';
+
+      for (const server of API_SERVERS) {
+        try {
+          const res = await fetch(`${server}/search?q=${encodeURIComponent(q)}&filter=videos`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.items && data.items.length > 0) {
+              const resultados = data.items.slice(0, 18).map(v => ({
+                id: v.url.replace('/watch?v=', ''),
+                title: v.title,
+                artist: v.uploaderName,
+                cover: v.thumbnail
+              }));
+              renderizarCanciones(resultados, 'gridCanciones');
+              return;
+            }
+          }
+        } catch (e) {}
+      }
+      grid.innerHTML = '<p style="color:#ff5555;">Error al buscar. Haz clic en Buscar otra vez.</p>';
+    }
+
+    function mostrarSeccion(seccion) {
+      const gridArtistas = document.getElementById('gridArtistas');
+      if (seccion === 'inicio' || seccion === 'top-canciones') {
+        document.getElementById('tituloSeccion').innerText = '🔥 Canciones Tops';
+        renderizarCanciones(topCancionesData, 'gridCanciones');
+        renderizarArtistas();
+      } else if (seccion === 'top-artistas') {
+        document.getElementById('tituloSeccion').innerText = '🎤 Artistas Tops';
+        document.getElementById('gridCanciones').innerHTML = '';
+        renderizarArtistas();
+      } else if (seccion === 'mi-lista') {
+        document.getElementById('tituloSeccion').innerText = '➕ Mi Playlist';
+        gridArtistas.innerHTML = '';
+        if (miPlaylist.length === 0) {
+          document.getElementById('gridCanciones').innerHTML = '<p style="color:#aaa;">Tu lista está vacía. Añade canciones pulsando el botón + sobre cada tarjeta.</p>';
+        } else {
+          renderizarCanciones(miPlaylist, 'gridCanciones');
+        }
       }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('searchInput').value = 'Bad Bunny MONACO';
-      buscarVideo();
+      renderizarCanciones(topCancionesData, 'gridCanciones');
+      renderizarArtistas();
+      actualizarContador();
     });
   </script>
 </body>
