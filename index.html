@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CarlosV8 - Canciones Completas</title>
+  <title>CarlosV8 - Canciones Enteras 100% Operativas</title>
   <style>
     :root {
       --accent: #8a2be2;
@@ -17,46 +17,35 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body { background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; padding-bottom: 140px; }
+    body { background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; padding-bottom: 120px; }
 
-    .app { display: flex; min-height: calc(100vh - 140px); }
+    .app { display: flex; min-height: calc(100vh - 120px); }
 
-    /* Menú Lateral */
-    .sidebar { width: 230px; background: var(--bg-sidebar); padding: 20px 16px; border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+    .sidebar { width: 230px; background: var(--bg-sidebar); padding: 20px 16px; border-right: 1px solid var(--border); flex-shrink: 0; }
     .brand { font-size: 22px; font-weight: 800; color: var(--accent); margin-bottom: 16px; }
-    .nav-item { background: transparent; border: none; color: var(--text-sub); padding: 12px 14px; border-radius: 8px; font-weight: 600; text-align: left; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; }
-    .nav-item:hover, .nav-item.active { color: #fff; background: var(--bg-card); }
-    .nav-item.active { border-left: 3px solid var(--accent); }
 
-    /* Contenido Principal */
     .content { flex: 1; padding: 24px; overflow-y: auto; }
-
     .top-bar { display: flex; gap: 12px; margin-bottom: 24px; }
     .search-input { flex: 1; padding: 14px 18px; border-radius: 25px; border: 1px solid var(--border); background: var(--bg-card); color: #fff; font-size: 15px; outline: none; }
     .btn-main { background: var(--accent); border: none; padding: 14px 24px; border-radius: 25px; font-weight: bold; color: #fff; cursor: pointer; }
-    .btn-main:hover { opacity: 0.9; }
 
     .section-title { font-size: 20px; font-weight: 800; margin: 20px 0 14px 0; }
-
-    /* Grilla de Canciones */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
     .card { background: var(--bg-card); padding: 12px; border-radius: 10px; cursor: pointer; transition: 0.15s; border: 1px solid transparent; }
-    .card:hover { border-color: var(--border); transform: translateY(-3px); }
+    .card:hover { border-color: var(--accent); transform: translateY(-3px); }
     .card img { width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; background: #222; }
     .card-title { font-weight: bold; margin-top: 10px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .card-sub { color: var(--text-sub); font-size: 11px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* Reproductor Completo en Parte Inferior */
-    .player-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 130px; background: var(--bg-player); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; z-index: 100; gap: 20px; }
-    .track-info { display: flex; align-items: center; gap: 12px; width: 220px; flex-shrink: 0; }
-    .cover-box { width: 50px; height: 50px; background: #222; border-radius: 6px; overflow: hidden; flex-shrink: 0; }
+    /* Barra de Reproducción Inferior */
+    .player-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 110px; background: var(--bg-player); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 10px 24px; z-index: 100; gap: 20px; }
+    .track-info { display: flex; align-items: center; gap: 12px; min-width: 220px; }
+    .cover-box { width: 55px; height: 55px; background: #222; border-radius: 6px; overflow: hidden; flex-shrink: 0; }
     .cover-box img { width: 100%; height: 100%; object-fit: cover; }
     .track-title { font-weight: bold; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .track-artist { color: var(--text-sub); font-size: 12px; margin-top: 2px; }
 
-    /* Contenedor del Reproductor YouTube Completo */
-    .yt-embed-box { flex: 1; max-width: 650px; height: 105px; border-radius: 8px; overflow: hidden; background: #000; border: 1px solid var(--border); }
-    .yt-embed-box iframe { width: 100%; height: 100%; border: none; }
+    audio { width: 100%; max-width: 500px; outline: none; }
   </style>
 </head>
 <body>
@@ -64,91 +53,100 @@
   <div class="app">
     <aside class="sidebar">
       <div class="brand">🎵 CarlosV8</div>
-      <button class="nav-item active">🔥 Canciones Completas</button>
+      <p style="font-size: 12px; color: var(--text-sub);">Canciones completas sin límite de tiempo</p>
     </aside>
 
     <main class="content">
       <div class="top-bar">
-        <input type="text" id="searchInput" class="search-input" placeholder="Escribe cualquier canción o artista (ej: LALION, Quevedo, Bad Bunny)..." onkeypress="if(event.key==='Enter') buscarCancionEntera()">
-        <button class="btn-main" onclick="buscarCancionEntera()">Reproducir Entera</button>
+        <input type="text" id="searchInput" class="search-input" placeholder="Buscar canción completa (ej: rock, pop, electro...)" onkeypress="if(event.key==='Enter') buscarJamendo()">
+        <button class="btn-main" onclick="buscarJamendo()">Buscar MP3 Real</button>
       </div>
 
-      <h2 class="section-title">🔥 Éxitos Populares (Completos)</h2>
+      <h2 class="section-title" id="gridTitle">🔥 Canciones Completas Recomendadas</h2>
       <div class="grid" id="mainGrid"></div>
     </main>
   </div>
 
-  <!-- Reproductor Inferior de Canción Completa -->
+  <!-- Reproductor Nativo de Canción Completa -->
   <footer class="player-bar">
     <div class="track-info">
       <div class="cover-box" id="pCover"><div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--accent);">🎵</div></div>
       <div style="overflow:hidden;">
         <div class="track-title" id="pTitle">Selecciona una canción</div>
-        <div class="track-artist" id="pArtist">Audio 100% Completo</div>
+        <div class="track-artist" id="pArtist">Canción Completa (MP3)</div>
       </div>
     </div>
 
-    <div class="yt-embed-box" id="ytContainer">
-      <div style="color:#aaa; font-size:13px; display:flex; align-items:center; justify-content:center; height:100%;">
-        Haz clic en cualquier canción para escucharla entera de principio a fin
-      </div>
-    </div>
+    <!-- Contenedor del audio nativo -->
+    <audio id="audioPlayer" controls autoplay></audio>
   </footer>
 
   <script>
-    // Lista con canciones preconfiguradas para reproducir completas
-    const cancionesTops = [
-      { title: 'MONACO', artist: 'Bad Bunny', query: 'Bad Bunny MONACO audio oficial', cover: 'https://img.youtube.com/vi/V9PVRfjEBTI/hqdefault.jpg' },
-      { title: 'Columbia', artist: 'Quevedo', query: 'Quevedo Columbia audio oficial', cover: 'https://img.youtube.com/vi/QeI2XmKTh0M/hqdefault.jpg' },
-      { title: 'LALA', artist: 'Myke Towers', query: 'Myke Towers LALA audio oficial', cover: 'https://img.youtube.com/vi/gA_33S3e_Xg/hqdefault.jpg' },
-      { title: 'LUNA', artist: 'Feid & ATL Jacob', query: 'Feid LUNA audio oficial', cover: 'https://img.youtube.com/vi/6T3oR1JzvhU/hqdefault.jpg' },
-      { title: 'Classy 101', artist: 'Feid & Young Miko', query: 'Feid Classy 101 audio oficial', cover: 'https://img.youtube.com/vi/9x3b85k2u0M/hqdefault.jpg' }
-    ];
+    const CLIENT_ID = '56d30c41'; // API Key pública de Jamendo para stream directo de audio completo
 
-    function cargarGrid() {
+    // Cargar canciones completas destacadas al iniciar
+    async function cargarDestacadas() {
+      const url = `https://api.jamendo.com/v3.0/tracks/?client_id=${CLIENT_ID}&format=jsonpretty&limit=12&order=popularity_week&audioformat=mp32`;
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        renderGrid(data.results);
+      } catch (err) {
+        console.error("Error al cargar música:", err);
+      }
+    }
+
+    // Buscar cualquier tema entero en la API
+    async function buscarJamendo() {
+      const q = document.getElementById('searchInput').value.trim();
+      if (!q) return;
+
+      document.getElementById('gridTitle').innerText = `Resultados para: "${q}"`;
+      const url = `https://api.jamendo.com/v3.0/tracks/?client_id=${CLIENT_ID}&format=jsonpretty&limit=18&namesearch=${encodeURIComponent(q)}&audioformat=mp32`;
+      
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        renderGrid(data.results);
+      } catch (err) {
+        console.error("Error en la búsqueda:", err);
+      }
+    }
+
+    function renderGrid(tracks) {
       const grid = document.getElementById('mainGrid');
       grid.innerHTML = '';
 
-      cancionesTops.forEach(s => {
+      if (!tracks || tracks.length === 0) {
+        grid.innerHTML = '<p style="color:var(--text-sub);">No se encontraron canciones completas.</p>';
+        return;
+      }
+
+      tracks.forEach(track => {
         const card = document.createElement('div');
         card.className = 'card';
-        card.onclick = () => reproducirEntera(s.title, s.artist, s.query, s.cover);
+        card.onclick = () => reproducirCancionEntera(track);
 
         card.innerHTML = `
-          <img src="${s.cover}">
-          <div class="card-title">${s.title}</div>
-          <div class="card-sub">${s.artist}</div>
+          <img src="${track.album_image || track.image || 'https://via.placeholder.com/150'}">
+          <div class="card-title">${track.name}</div>
+          <div class="card-sub">${track.artist_name}</div>
         `;
         grid.appendChild(card);
       });
     }
 
-    function reproducirEntera(title, artist, query, cover) {
-      document.getElementById('pTitle').innerText = title;
-      document.getElementById('pArtist').innerText = artist;
-      
-      if (cover) {
-        document.getElementById('pCover').innerHTML = `<img src="${cover}">`;
-      } else {
-        document.getElementById('pCover').innerHTML = `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;font-weight:bold;">V8</div>`;
-      }
+    function reproducirCancionEntera(track) {
+      document.getElementById('pTitle').innerText = track.name;
+      document.getElementById('pArtist').innerText = track.artist_name;
+      document.getElementById('pCover').innerHTML = `<img src="${track.album_image || track.image}">`;
 
-      // Incrusta el reproductor completo utilizando la búsqueda directa de YouTube
-      const embedUrl = `https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(query)}&autoplay=1`;
-      document.getElementById('ytContainer').innerHTML = `<iframe src="${embedUrl}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+      const audio = document.getElementById('audioPlayer');
+      audio.src = track.audio; // MP3 con la canción completa de principio a fin
+      audio.play();
     }
 
-    function buscarCancionEntera() {
-      const q = document.getElementById('searchInput').value.trim();
-      if (!q) return;
-
-      // Reproduce la búsqueda ingresada de inmediato y sin límite de tiempo
-      reproducirEntera(q, 'Búsqueda de YouTube', `${q} audio oficial`, null);
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      cargarGrid();
-    });
+    document.addEventListener('DOMContentLoaded', cargarDestacadas);
   </script>
 </body>
 </html>
