@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="referrer" content="no-referrer">
   <title>CarlosV8 - Music Player</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
@@ -46,8 +45,8 @@
     .card-sub { color: #aaa; font-size: 11px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     
     .add-btn {
-      position: absolute; top: 16px; right: 16px; background: rgba(0,0,0,0.7); border: none; color: #1DB954;
-      font-size: 18px; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      position: absolute; top: 16px; right: 16px; background: rgba(0,0,0,0.75); border: none; color: #1DB954;
+      font-size: 16px; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
     }
     .add-btn:hover { background: #1DB954; color: #000; }
 
@@ -59,8 +58,8 @@
       background: #000000; border-top: 1px solid #282828; display: flex;
       align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100;
     }
-    .track-info { display: flex; align-items: center; gap: 12px; width: 30%; }
-    .cover-box { width: 52px; height: 52px; background: #282828; border-radius: 6px; overflow: hidden; flex-shrink: 0; }
+    .track-info { display: flex; align-items: center; gap: 12px; width: 35%; }
+    .cover-box { width: 54px; height: 54px; background: #282828; border-radius: 6px; overflow: hidden; flex-shrink: 0; }
     .cover-box img { width: 100%; height: 100%; object-fit: cover; }
     .track-text { overflow: hidden; }
     .track-title { font-weight: bold; font-size: 14px; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -75,15 +74,15 @@
   <div class="app-container">
     <aside class="sidebar">
       <div class="brand">CarlosV8</div>
-      <button class="nav-btn active" onclick="mostrarSeccion('inicio')">🏠 Inicio</button>
-      <button class="nav-btn" onclick="mostrarSeccion('top-canciones')">🔥 Top Canciones</button>
-      <button class="nav-btn" onclick="mostrarSeccion('top-artistas')">🎤 Top Artistas</button>
-      <button class="nav-btn" onclick="mostrarSeccion('mi-lista')">➕ Mi Playlist (<span id="countPlaylist">0</span>)</button>
+      <button class="nav-btn active" id="btn-inicio" onclick="mostrarSeccion('inicio')">🏠 Inicio</button>
+      <button class="nav-btn" id="btn-top-canciones" onclick="mostrarSeccion('top-canciones')">🔥 Top Canciones</button>
+      <button class="nav-btn" id="btn-top-artistas" onclick="mostrarSeccion('top-artistas')">🎤 Top Artistas</button>
+      <button class="nav-btn" id="btn-mi-lista" onclick="mostrarSeccion('mi-lista')">➕ Mi Playlist (<span id="countPlaylist">0</span>)</button>
     </aside>
 
     <main class="main-content">
       <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Escribe cualquier canción o artista..." onkeypress="if(event.key==='Enter') buscar()">
+        <input type="text" id="searchInput" placeholder="Escribe cualquier canción o artista (ej: LALION, Bad Bunny...)" onkeypress="if(event.key==='Enter') buscar()">
         <button onclick="buscar()">Buscar</button>
       </div>
 
@@ -113,28 +112,20 @@
   </footer>
 
   <script>
-    // Servidores con soporte CORS habilitado para GitHub Pages
-    const ENDPOINTS = [
-      { search: 'https://invidious.nerdvpn.de/api/v1/search?q=', stream: 'https://invidious.nerdvpn.de/api/v1/videos/' },
-      { search: 'https://vid.puffyan.us/api/v1/search?q=', stream: 'https://vid.puffyan.us/api/v1/videos/' },
-      { search: 'https://inv.nadim.computer/api/v1/search?q=', stream: 'https://inv.nadim.computer/api/v1/videos/' }
-    ];
-
     const topCancionesData = [
-      { id: 'f0X90C8eA4M', title: 'MONACO', artist: 'Bad Bunny', cover: 'https://i.ytimg.com/vi/f0X90C8eA4M/hqdefault.jpg' },
-      { id: 'm49a2gA2LNo', title: 'Columbia', artist: 'Quevedo', cover: 'https://i.ytimg.com/vi/m49a2gA2LNo/hqdefault.jpg' },
-      { id: 'g202Bv-N4qA', title: 'LALA', artist: 'Myke Towers', cover: 'https://i.ytimg.com/vi/g202Bv-N4qA/hqdefault.jpg' },
-      { id: 'sL2B734a2e0', title: 'LUNA', artist: 'Feid', cover: 'https://i.ytimg.com/vi/sL2B734a2e0/hqdefault.jpg' },
-      { id: 'sJ92c_Z6x3s', title: 'Classy 101', artist: 'Feid & Young Miko', cover: 'https://i.ytimg.com/vi/sJ92c_Z6x3s/hqdefault.jpg' },
-      { id: 'V9PVRfjEBTI', title: 'QLONA', artist: 'Karol G & Peso Pluma', cover: 'https://i.ytimg.com/vi/V9PVRfjEBTI/hqdefault.jpg' }
+      { id: '1', title: 'MONACO', artist: 'Bad Bunny', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/bf/16/d6/bf16d6c3-1f19-9154-1a3b-24b553e1bf2c/197188981440.jpg/600x600bb.jpg', previewUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview116/v4/6c/df/0a/6cdf0a3a-2373-19cb-e4d0-47b2c5e52c80/mzaf_13303683510595568897.plus.aac.p.m4a' },
+      { id: '2', title: 'Columbia', artist: 'Quevedo', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/6d/2c/18/6d2c18df-e53b-e0fa-9869-79f977c08b5f/8445162816911.jpg/600x600bb.jpg', previewUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview116/v4/c2/f7/68/c2f76816-0158-b610-8b4e-28beeb3cf38b/mzaf_14436894042838734026.plus.aac.p.m4a' },
+      { id: '3', title: 'LALA', artist: 'Myke Towers', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/64/73/4f/64734f19-33b8-68f7-7b69-f81d1131c19b/190296238803.jpg/600x600bb.jpg', previewUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview116/v4/b8/b8/63/b8b863aa-8d02-2cb1-bf9d-f682bb1978eb/mzaf_11306660601614749385.plus.aac.p.m4a' },
+      { id: '4', title: 'LUNA', artist: 'Feid & ATL Jacob', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/13/be/05/13be059f-d31d-d249-14a2-e612f08535f2/23UM1IM35706.rgb.jpg/600x600bb.jpg', previewUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview126/v4/e5/cd/02/e5cd0244-15c2-491d-a46c-c9f280a316a3/mzaf_8497645062569234850.plus.aac.p.m4a' },
+      { id: '5', title: 'Classy 101', artist: 'Feid & Young Miko', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/31/6a/e0/316ae0b0-2101-7fa1-32eb-00b8e62d4dd6/23UM1IM05232.rgb.jpg/600x600bb.jpg', previewUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview126/v4/c6/16/8c/c6168ce7-0624-a551-fb1f-ce037c8cb1e3/mzaf_3991280327394336109.plus.aac.p.m4a' }
     ];
 
     const topArtistasData = [
-      { name: 'Bad Bunny', cover: 'https://i.ytimg.com/vi/f0X90C8eA4M/hqdefault.jpg' },
-      { name: 'Quevedo', cover: 'https://i.ytimg.com/vi/m49a2gA2LNo/hqdefault.jpg' },
-      { name: 'Feid', cover: 'https://i.ytimg.com/vi/sL2B734a2e0/hqdefault.jpg' },
-      { name: 'Myke Towers', cover: 'https://i.ytimg.com/vi/g202Bv-N4qA/hqdefault.jpg' },
-      { name: 'Karol G', cover: 'https://i.ytimg.com/vi/V9PVRfjEBTI/hqdefault.jpg' }
+      { name: 'Bad Bunny', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/bf/16/d6/bf16d6c3-1f19-9154-1a3b-24b553e1bf2c/197188981440.jpg/600x600bb.jpg' },
+      { name: 'Feid', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/13/be/05/13be059f-d31d-d249-14a2-e612f08535f2/23UM1IM35706.rgb.jpg/600x600bb.jpg' },
+      { name: 'Quevedo', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/6d/2c/18/6d2c18df-e53b-e0fa-9869-79f977c08b5f/8445162816911.jpg/600x600bb.jpg' },
+      { name: 'LALION', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/bc/2d/a8/bc2da82b-91f1-3038-0a6f-f28328c71a32/197188373726.jpg/600x600bb.jpg' },
+      { name: 'Myke Towers', cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/64/73/4f/64734f19-33b8-68f7-7b69-f81d1131c19b/190296238803.jpg/600x600bb.jpg' }
     ];
 
     let miPlaylist = JSON.parse(localStorage.getItem('carlosv8_playlist')) || [];
@@ -143,21 +134,55 @@
       document.getElementById('countPlaylist').innerText = miPlaylist.length;
     }
 
-    function renderizarCanciones(lista, contenedorId) {
+    function crearCartaCancion(s, esPlaylist = false) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.onclick = () => reproducir(s.title, s.artist, s.cover, s.previewUrl);
+
+      const btn = document.createElement('button');
+      btn.className = 'add-btn';
+      
+      if (esPlaylist) {
+        btn.innerHTML = '🗑️';
+        btn.title = 'Quitar de mi lista';
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          eliminarDePlaylist(s.id);
+        };
+      } else {
+        btn.innerHTML = '＋';
+        btn.title = 'Añadir a mi lista';
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          agregarAPlaylist(s);
+        };
+      }
+
+      const img = document.createElement('img');
+      img.src = s.cover;
+      img.referrerPolicy = 'no-referrer';
+
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'card-title';
+      titleDiv.innerText = s.title;
+
+      const subDiv = document.createElement('div');
+      subDiv.className = 'card-sub';
+      subDiv.innerText = s.artist;
+
+      card.appendChild(btn);
+      card.appendChild(img);
+      card.appendChild(titleDiv);
+      card.appendChild(subDiv);
+
+      return card;
+    }
+
+    function renderizarCanciones(lista, contenedorId, esPlaylist = false) {
       const container = document.getElementById(contenedorId);
       container.innerHTML = '';
       lista.forEach(s => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.onclick = () => reproducir(s.id, s.title, s.artist, s.cover);
-
-        card.innerHTML = `
-          <button class="add-btn" title="Añadir a mi lista" onclick="event.stopPropagation(); agregarAPlaylist('${s.id}', '${s.title.replace(/'/g, "\\'")}', '${s.artist.replace(/'/g, "\\'")}', '${s.cover}')">＋</button>
-          <img src="${s.cover}" referrerpolicy="no-referrer">
-          <div class="card-title">${s.title}</div>
-          <div class="card-sub">${s.artist}</div>
-        `;
-        container.appendChild(card);
+        container.appendChild(crearCartaCancion(s, esPlaylist));
       });
     }
 
@@ -180,15 +205,22 @@
       });
     }
 
-    function agregarAPlaylist(id, title, artist, cover) {
-      if (!miPlaylist.some(item => item.id === id)) {
-        miPlaylist.push({ id, title, artist, cover });
+    function agregarAPlaylist(s) {
+      if (!miPlaylist.some(item => item.id === s.id)) {
+        miPlaylist.push(s);
         localStorage.setItem('carlosv8_playlist', JSON.stringify(miPlaylist));
         actualizarContador();
-        alert(`"${title}" guardada en Mi Playlist`);
+        alert(`"${s.title}" guardada en tu Playlist`);
       } else {
         alert('Esta canción ya está en tu lista.');
       }
+    }
+
+    function eliminarDePlaylist(id) {
+      miPlaylist = miPlaylist.filter(item => item.id !== id);
+      localStorage.setItem('carlosv8_playlist', JSON.stringify(miPlaylist));
+      actualizarContador();
+      mostrarSeccion('mi-lista');
     }
 
     async function buscar() {
@@ -199,91 +231,73 @@
       document.getElementById('tituloArtistas').style.display = 'none';
       document.getElementById('gridArtistas').innerHTML = '';
       const grid = document.getElementById('gridCanciones');
-      grid.innerHTML = '<p style="color:#aaa;">Buscando música libre de anuncios...</p>';
+      grid.innerHTML = '<p style="color:#aaa;">Buscando música...</p>';
 
-      let encontrado = false;
+      try {
+        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&limit=24`);
+        if (!res.ok) throw new Error('Error al buscar');
+        const data = await res.json();
 
-      for (const node of ENDPOINTS) {
-        try {
-          const res = await fetch(`${node.search}${encodeURIComponent(q)}&type=video`);
-          if (res.ok) {
-            const data = await res.json();
-            if (Array.isArray(data) && data.length > 0) {
-              const resultados = data.slice(0, 18).map(v => ({
-                id: v.videoId,
-                title: v.title,
-                artist: v.author,
-                cover: v.videoThumbnails ? v.videoThumbnails[0].url : `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`
-              }));
-              renderizarCanciones(resultados, 'gridCanciones');
-              encontrado = true;
-              break;
-            }
-          }
-        } catch (e) {
-          console.warn('Probando siguiente nodo de búsqueda...');
+        grid.innerHTML = '';
+        if (!data.results || data.results.length === 0) {
+          grid.innerHTML = '<p style="color:#aaa;">No se encontraron resultados para esta búsqueda.</p>';
+          return;
         }
-      }
 
-      if (!encontrado) {
-        grid.innerHTML = '<p style="color:#aaa;">No se obtuvieron resultados en esta búsqueda. Intenta con otro término.</p>';
+        data.results.forEach(item => {
+          const song = {
+            id: item.trackId ? item.trackId.toString() : String(Math.random()),
+            title: item.trackName || 'Sin título',
+            artist: item.artistName || 'Artista desconocido',
+            cover: item.artworkUrl100 ? item.artworkUrl100.replace('100x100bb', '600x600bb') : 'https://via.placeholder.com/150/282828/ffffff?text=V8',
+            previewUrl: item.previewUrl
+          };
+          grid.appendChild(crearCartaCancion(song, false));
+        });
+      } catch (err) {
+        console.error(err);
+        grid.innerHTML = '<p style="color:#aaa;">Ocurrió un problema de conexión. Vuelve a intentarlo.</p>';
       }
     }
 
-    async function reproducir(ytId, title, artist, cover) {
+    function reproducir(title, artist, cover, previewUrl) {
       document.getElementById('title').innerText = title;
       document.getElementById('artist').innerText = artist;
       document.getElementById('coverContainer').innerHTML = `<img src="${cover}" referrerpolicy="no-referrer">`;
 
       const player = document.getElementById('audioPlayer');
-      player.pause();
-
-      let reproducido = false;
-
-      for (const node of ENDPOINTS) {
-        try {
-          const res = await fetch(`${node.stream}${ytId}`);
-          if (res.ok) {
-            const data = await res.json();
-            const audioStream = data.adaptiveFormats ? data.adaptiveFormats.find(f => f.type && f.type.includes('audio')) : null;
-            if (audioStream && audioStream.url) {
-              player.src = audioStream.url;
-              player.play();
-              reproducido = true;
-              break;
-            }
-          }
-        } catch (e) {
-          console.warn('Probando servidor alternativo de transmisión...');
-        }
-      }
-
-      if (!reproducido) {
-        // Método de seguridad alternativo
-        player.src = `https://invidious.nerdvpn.de/latest_version?id=${ytId}&italic=true`;
-        player.play();
+      if (previewUrl) {
+        player.src = previewUrl;
+        player.play().catch(() => {});
+      } else {
+        alert('Esta pista no dispone de reproducción de audio directa.');
       }
     }
 
     function mostrarSeccion(seccion) {
       const tituloArtistas = document.getElementById('tituloArtistas');
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
       if (seccion === 'inicio' || seccion === 'top-canciones') {
+        document.getElementById('btn-' + seccion).classList.add('active');
         document.getElementById('tituloPrincipal').innerText = '🔥 Canciones Tops';
         tituloArtistas.style.display = 'block';
         renderizarCanciones(topCancionesData, 'gridCanciones');
         renderizarArtistas();
       } else if (seccion === 'top-artistas') {
+        document.getElementById('btn-top-artistas').classList.add('active');
         document.getElementById('tituloPrincipal').innerText = '🎤 Artistas Tops';
         document.getElementById('gridCanciones').innerHTML = '';
         tituloArtistas.style.display = 'none';
         renderizarArtistas();
       } else if (seccion === 'mi-lista') {
+        document.getElementById('btn-mi-lista').classList.add('active');
         document.getElementById('tituloPrincipal').innerText = '➕ Mi Playlist';
         tituloArtistas.style.display = 'none';
         if (miPlaylist.length === 0) {
-          document.getElementById('gridCanciones').innerHTML = '<p style="color:#aaa;">Tu lista está vacía. Añade canciones pulsando el botón ＋.</p>';
+          document.getElementById('gridCanciones').innerHTML = '<p style="color:#aaa;">Tu lista está vacía. Añade canciones pulsando el botón ＋ sobre cualquier tarjeta.</p>';
         } else {
-          renderizarCanciones(miPlaylist, 'gridCanciones');
+          renderizarCanciones(miPlaylist, 'gridCanciones', true);
         }
       }
     }
