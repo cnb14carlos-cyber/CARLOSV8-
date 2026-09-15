@@ -3,129 +3,162 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Evita que GitHub Pages sea bloqueado por servidores de imágenes de YouTube/Apple -->
-  <meta name="referrer" content="no-referrer">
-  <title>CarlosV8 - Music Player</title>
+  <title>CarlosV8 - Zero Ads Player</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
     body { background-color: #121212; color: #ffffff; padding-bottom: 120px; min-height: 100vh; }
 
     .app-container { display: flex; min-height: calc(100vh - 100px); }
 
-    /* Menú lateral */
     .sidebar {
-      width: 220px; background: #000; padding: 20px 16px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;
+      width: 230px; background: #000; padding: 20px 16px; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0;
     }
-    .brand { font-size: 20px; font-weight: 800; color: #1DB954; margin-bottom: 15px; }
+    .brand { font-size: 22px; font-weight: 800; color: #1DB954; margin-bottom: 10px; }
     .nav-btn {
-      background: transparent; border: none; color: #b3b3b3; padding: 10px 14px;
+      background: transparent; border: none; color: #b3b3b3; padding: 12px 14px;
       border-radius: 8px; font-weight: bold; text-align: left; cursor: pointer; transition: 0.2s;
     }
     .nav-btn:hover, .nav-btn.active { color: #fff; background: #282828; }
 
-    /* Panel principal */
-    .main-content { flex: 1; padding: 24px; background: #121212; }
-    .section-title { font-size: 20px; font-weight: 800; margin-bottom: 16px; }
+    .main-content { flex: 1; padding: 24px; background: #121212; overflow-y: auto; }
+    
+    .search-container {
+      background: #181818; padding: 20px; border-radius: 12px; margin-bottom: 24px; border: 1px solid #282828;
+    }
+    .search-box { display: flex; gap: 10px; margin-top: 10px; }
+    .search-box input {
+      flex: 1; padding: 12px 18px; border-radius: 25px; border: 1px solid #333; background: #222; color: #fff; font-size: 15px; outline: none;
+    }
+    .search-box button {
+      background: #1DB954; border: none; padding: 12px 24px; border-radius: 25px; font-weight: bold; color: #000; cursor: pointer; transition: 0.2s;
+    }
+    .search-box button:hover { background: #1ed760; }
 
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 18px; }
-    .card { background: #181818; padding: 14px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
-    .card:hover { background: #282828; transform: translateY(-3px); }
-    .card img { width: 100%; aspect-ratio: 1; border-radius: 6px; object-fit: cover; background: #282828; display: block; }
-    .card-title { font-weight: bold; margin-top: 10px; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .card-sub { color: #aaa; font-size: 12px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .section-title { font-size: 20px; font-weight: 800; margin: 20px 0 14px 0; color: #1DB954; }
 
-    /* Reproductor inferior */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
+    .card { background: #181818; padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+    .card:hover { background: #282828; transform: translateY(-4px); }
+    .card img { width: 100%; aspect-ratio: 16/9; border-radius: 6px; object-fit: cover; background: #282828; display: block; }
+    .card-title { font-weight: bold; margin-top: 8px; font-size: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .card-sub { color: #aaa; font-size: 11px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Reproductor sin Anuncios */
     .player-bar {
-      position: fixed; bottom: 0; left: 0; width: 100%; height: 95px;
+      position: fixed; bottom: 0; left: 0; width: 100%; height: 110px;
       background: #000; border-top: 1px solid #282828; display: flex;
       align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100;
     }
-    .track-info { display: flex; align-items: center; gap: 12px; width: 35%; }
-    .track-info img { width: 52px; height: 52px; border-radius: 6px; object-fit: cover; background: #282828; }
+    .track-info { display: flex; align-items: center; gap: 12px; width: 30%; }
+    .track-info div { overflow: hidden; }
 
-    .yt-container { width: 300px; height: 75px; border-radius: 8px; overflow: hidden; background: #000; }
-    iframe { width: 100%; height: 100%; border: none; }
+    .video-container { width: 320px; height: 90px; border-radius: 8px; overflow: hidden; background: #000; }
+    video { width: 100%; height: 100%; object-fit: contain; }
   </style>
 </head>
 <body>
 
   <div class="app-container">
     <aside class="sidebar">
-      <div class="brand">CarlosV8</div>
-      <button class="nav-btn active">🏠 Inicio</button>
+      <div class="brand">⚡ CarlosV8 ZeroAds</div>
+      <button class="nav-btn active">🔍 Buscar Canciones</button>
     </aside>
 
     <main class="main-content">
-      <h2 class="section-title">🔥 Canciones Completas (YouTube Directo)</h2>
-      <div class="grid" id="songsGrid"></div>
+      <div class="search-container">
+        <h2>Buscador Directo (Sin Anuncios)</h2>
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="Escribe cualquier canción o artista..." onkeypress="if(event.key==='Enter') buscarVideo()">
+          <button onclick="buscarVideo()">Buscar</button>
+        </div>
+      </div>
+
+      <h2 class="section-title" id="tituloResultados">Canciones disponibles</h2>
+      <div class="grid" id="gridResultados">
+        <p style="color:#aaa;">Cargando catálogo...</p>
+      </div>
     </main>
   </div>
 
   <footer class="player-bar">
     <div class="track-info">
-      <img id="cover" src="" alt="">
       <div>
         <div id="title" style="font-weight:bold; font-size:14px;">Selecciona una canción</div>
         <div id="artist" style="color:#aaa; font-size:12px;">CarlosV8 Player</div>
       </div>
     </div>
-    <div class="yt-container">
-      <iframe id="ytFrame" allow="autoplay; encrypted-media"></iframe>
+    <div class="video-container">
+      <video id="nativePlayer" controls autoplay></video>
     </div>
   </footer>
 
   <script>
-    // Genera una portada con las iniciales si la foto de internet falla
-    function generarPortadaSVG(titulo) {
-      const iniciales = (titulo || 'V8').substring(0, 2).toUpperCase();
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">
-        <rect width="100%" height="100%" fill="#1DB954"/>
-        <text x="50%" y="55%" font-family="sans-serif" font-size="60" font-weight="bold" fill="#000" text-anchor="middle" dominant-baseline="middle">${iniciales}</text>
-      </svg>`;
-      return 'data:image/svg+xml;base64,' + btoa(svg);
+    const API_BASE = 'https://pipedapi.kavin.rocks';
+
+    async function buscarVideo() {
+      const q = document.getElementById('searchInput').value.trim() || 'Quevedo Columbia';
+      const grid = document.getElementById('gridResultados');
+      document.getElementById('tituloResultados').innerText = `Resultados para "${q}"`;
+      grid.innerHTML = '<p style="color:#aaa;">Obteniendo vídeos sin anuncios...</p>';
+
+      try {
+        const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(q)}&filter=videos`);
+        const data = await res.json();
+        grid.innerHTML = '';
+
+        if (!data.items || data.items.length === 0) {
+          grid.innerHTML = '<p style="color:#aaa;">No se encontraron resultados.</p>';
+          return;
+        }
+
+        data.items.slice(0, 20).forEach(video => {
+          const videoId = video.url.replace('/watch?v=', '');
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.onclick = () => reproducirSinAnuncios(videoId, video.title, video.uploaderName);
+
+          card.innerHTML = `
+            <img src="${video.thumbnail}" referrerpolicy="no-referrer">
+            <div class="card-title">${video.title}</div>
+            <div class="card-sub">${video.uploaderName}</div>
+          `;
+          grid.appendChild(card);
+        });
+      } catch (e) {
+        grid.innerHTML = '<p style="color:#ff5555;">Error de conexión con la red limpia.</p>';
+      }
     }
 
-    const canciones = [
-      { title: 'Columbia', artist: 'Quevedo', ytId: 'm49a2gA2LNo', cover: 'https://i.ytimg.com/vi/m49a2gA2LNo/hqdefault.jpg' },
-      { title: 'LALA', artist: 'Myke Towers', ytId: 'g202Bv-N4qA', cover: 'https://i.ytimg.com/vi/g202Bv-N4qA/hqdefault.jpg' },
-      { title: 'Classy 101', artist: 'Feid & Young Miko', ytId: 'sJ92c_Z6x3s', cover: 'https://i.ytimg.com/vi/sJ92c_Z6x3s/hqdefault.jpg' },
-      { title: 'LUNA', artist: 'Feid', ytId: 'sL2B734a2e0', cover: 'https://i.ytimg.com/vi/sL2B734a2e0/hqdefault.jpg' },
-      { title: 'MONACO', artist: 'Bad Bunny', ytId: 'f0X90C8eA4M', cover: 'https://i.ytimg.com/vi/f0X90C8eA4M/hqdefault.jpg' }
-    ];
-
-    const grid = document.getElementById('songsGrid');
-
-    canciones.forEach(s => {
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.onclick = () => reproducir(s.ytId, s.title, s.artist, s.cover);
-
-      const fallback = generarPortadaSVG(s.title);
-      card.innerHTML = `
-        <img src="${s.cover}" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${fallback}';">
-        <div class="card-title">${s.title}</div>
-        <div class="card-sub">${s.artist}</div>
-      `;
-      grid.appendChild(card);
-    });
-
-    function reproducir(ytId, title, artist, cover) {
+    async function reproducirSinAnuncios(videoId, title, artist) {
       document.getElementById('title').innerText = title;
       document.getElementById('artist').innerText = artist;
 
-      const coverImg = document.getElementById('cover');
-      coverImg.referrerPolicy = "no-referrer";
-      coverImg.onerror = function() {
-        this.onerror = null;
-        this.src = generarPortadaSVG(title);
-      };
-      coverImg.src = cover;
+      const player = document.getElementById('nativePlayer');
+      player.pause();
 
-      document.getElementById('ytFrame').src = `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1`;
+      try {
+        // Pide la transmisión directa del vídeo/audio sin pasar por el player de YouTube
+        const res = await fetch(`${API_BASE}/streams/${videoId}`);
+        const data = await res.json();
+
+        // Selecciona la transmisión directa de mejor calidad
+        const stream = data.videoStreams.find(v => v.quality === '720p' || v.quality === '480p') || data.videoStreams[0];
+
+        if (stream && stream.url) {
+          player.src = stream.url;
+          player.play();
+        } else {
+          alert('No se pudo extraer el flujo directo de esta canción.');
+        }
+      } catch (e) {
+        console.error('Error extrayendo stream:', e);
+      }
     }
 
-    // Carga la portada inicial del reproductor
-    document.getElementById('cover').src = generarPortadaSVG('V8');
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('searchInput').value = 'Bad Bunny MONACO';
+      buscarVideo();
+    });
   </script>
 </body>
 </html>
